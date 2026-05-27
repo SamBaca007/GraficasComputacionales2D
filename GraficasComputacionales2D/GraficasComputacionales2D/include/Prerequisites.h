@@ -10,6 +10,8 @@
 #include <fstream>
 #include <unordered_map>
 #include <memory>
+#include <cstdint>
+#include <limits>
 
 // Third Parties
 #include <SFML/Graphics.hpp>

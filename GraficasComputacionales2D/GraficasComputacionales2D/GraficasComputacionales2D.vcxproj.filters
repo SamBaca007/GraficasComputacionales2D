@@ -19,6 +19,9 @@
     <Filter Include="Archivos de origen\Core">
       <UniqueIdentifier>{60ea2e38-2f56-4d44-983d-a5981951cbac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Archivos de encabezado\ECS">
+      <UniqueIdentifier>{f26269bf-7d9f-47b3-bccf-ca9df4387760}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\main.cpp">
@@ -40,6 +43,9 @@
     </ClInclude>
     <ClInclude Include="include\Core\CShape.h">
       <Filter>Archivos de encabezado\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Types.h">
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
