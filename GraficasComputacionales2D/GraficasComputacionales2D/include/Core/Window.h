@@ -36,8 +36,7 @@ public:
   void
   destroy();
 
-  sf::RenderWindow* m_window = nullptr;
-
+  std::unique_ptr<sf::RenderWindow> m_window;
 private:
   sf::View m_view;
   sf::Time deltaTime;

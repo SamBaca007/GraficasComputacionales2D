@@ -1,13 +1,16 @@
 #include "Core/Window.h"
 
 Window::Window(int width, int height, const std::string& title) {
-  m_window = new sf::RenderWindow(sf::VideoMode({ static_cast<unsigned int>(width),
-    static_cast<unsigned int>(height) }), title, sf::Style::Default);
+  // Cambiamos el 'new sf::RenderWindow' por 'std::make_unique<sf::RenderWindow>'
+  m_window = std::make_unique<sf::RenderWindow>(
+    sf::VideoMode({ static_cast<unsigned int>(width), static_cast<unsigned int>(height) }),
+    title,
+    sf::Style::Default
+  );
 
   if (m_window) {
     m_window->setFramerateLimit(60);
     MESSAGE("Window", "Window", "Window created successfully");
-
   }
   else {
     ERROR("Window", "Window", "Failed to create window");
@@ -15,7 +18,6 @@ Window::Window(int width, int height, const std::string& title) {
 }
 
 Window::~Window() {
-  SAFE_PTR_RELEASE(m_window);
 }
 
 bool
@@ -83,5 +85,5 @@ Window::render() {
 
 void
 Window::destroy() {
-  SAFE_PTR_RELEASE(m_window);
+  m_window.reset();
 }
