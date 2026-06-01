@@ -12,6 +12,8 @@
 #include <memory>
 #include <cstdint>
 #include <limits>
+#include <cassert>
+#include <utility>
 
 // Third Parties
 #include <SFML/Graphics.hpp>

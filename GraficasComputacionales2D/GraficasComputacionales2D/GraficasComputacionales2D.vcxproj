@@ -170,8 +170,10 @@
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComponentPool.h" />
     <ClInclude Include="include\Core\CShape.h" />
     <ClInclude Include="include\Core\Window.h" />
+    <ClInclude Include="include\ECS\SparseSet.h" />
     <ClInclude Include="include\ECS\Types.h" />
     <ClInclude Include="include\Prerequisites.h" />
   </ItemGroup>
