@@ -170,12 +170,15 @@
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ComponentPool.h" />
     <ClInclude Include="include\Core\CShape.h" />
     <ClInclude Include="include\Core\Window.h" />
+    <ClInclude Include="include\ECS\ComponentPool.h" />
+    <ClInclude Include="include\ECS\Registry.h" />
     <ClInclude Include="include\ECS\SparseSet.h" />
+    <ClInclude Include="include\ECS\System.h" />
     <ClInclude Include="include\ECS\Types.h" />
     <ClInclude Include="include\Prerequisites.h" />
+    <ClInclude Include="View.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
