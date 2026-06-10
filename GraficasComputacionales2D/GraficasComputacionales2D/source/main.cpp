@@ -29,7 +29,8 @@ CShape Circle(ShapeType::CIRCLE);
  * Reinicia el puntero inteligente asociado a la ventana,
  * provocando la destrucción de la misma.
  */
-void destroy() {
+void
+destroy() {
   g_window.reset();
 }
 
@@ -47,7 +48,8 @@ void destroy() {
  *
  * @return Código de finalización del programa.
  */
-int main()
+int
+main()
 {
   // =========================================================
   // Inicialización

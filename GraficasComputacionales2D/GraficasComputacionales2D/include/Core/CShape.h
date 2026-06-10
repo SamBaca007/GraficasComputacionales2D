@@ -1,7 +1,8 @@
 #pragma once
 #include "Prerequisites.h"
 
-class Window;
+class
+  Window;
 
 /**
  * @class CShape
@@ -14,7 +15,8 @@ class Window;
  * La memoria de la figura se administra automáticamente mediante
  * std::unique_ptr.
  */
-class CShape {
+class
+  CShape {
 public:
 
   /**
@@ -30,7 +32,8 @@ public:
    *
    * @param shapeType Tipo de figura a crear.
    */
-  explicit CShape(ShapeType shapeType);
+  explicit
+    CShape(ShapeType shapeType);
 
   /**
    * @brief Destructor por defecto.
@@ -48,7 +51,8 @@ public:
    *
    * @param window Ventana donde se dibujará la figura.
    */
-  void draw(Window& window);
+  void
+    draw(Window& window);
 
   /**
    * @brief Obtiene acceso a la figura interna.

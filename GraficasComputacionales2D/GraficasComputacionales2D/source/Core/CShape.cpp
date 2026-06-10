@@ -28,7 +28,8 @@ CShape::CShape(ShapeType shapeType)
  *
  * @param window Ventana donde se renderizará la figura.
  */
-void CShape::draw(Window& window) {
+void
+CShape::draw(Window& window) {
 
   if (m_shape) {
     window.draw(*m_shape);

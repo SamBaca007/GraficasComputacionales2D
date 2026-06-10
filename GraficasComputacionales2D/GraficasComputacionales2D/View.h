@@ -1,7 +1,8 @@
 #pragma once
 #include "ECS/ComponentPool.h"
 
-namespace ECS {
+namespace
+  ECS {
 
   /**
    * @class View
@@ -20,7 +21,8 @@ namespace ECS {
    * @tparam Components Tipos de componentes requeridos por la vista.
    */
   template<typename... Components>
-  class View {
+  class
+    View {
   public:
 
     /**
@@ -32,7 +34,8 @@ namespace ECS {
      *
      * @param pools Punteros a los pools de componentes asociados.
      */
-    explicit View(ComponentPool<Components>*... pools) noexcept
+    explicit
+      View(ComponentPool<Components>*... pools) noexcept
       : m_pools(pools...) {
       FindSmallest();
     }
@@ -59,7 +62,8 @@ namespace ECS {
      * @param func Función a ejecutar para cada entidad encontrada.
      */
     template<typename Func>
-    void Each(Func&& func) {
+    void
+      Each(Func&& func) {
       if (!m_smallest)
         return;
 
@@ -96,7 +100,8 @@ namespace ECS {
      * @param func Función a ejecutar para cada entidad encontrada.
      */
     template<typename Func>
-    void EachEntity(Func&& func) {
+    void
+      EachEntity(Func&& func) {
       if (!m_smallest)
         return;
 
@@ -117,7 +122,8 @@ namespace ECS {
      * @return true si no existen entidades que cumplan los requisitos.
      * @return false en caso contrario.
      */
-    [[nodiscard]] bool Empty() const noexcept {
+    [[nodiscard]] bool
+      Empty() const noexcept {
       return !m_smallest || m_smallest->Empty();
     }
 
@@ -146,7 +152,8 @@ namespace ECS {
      *           en tiempo de compilación.
      */
     template<std::size_t I = 0>
-    void FindSmallest() noexcept {
+    void
+      FindSmallest() noexcept {
       if constexpr (I < sizeof...(Components)) {
         auto* pool = std::get<I>(m_pools);
 
@@ -169,7 +176,8 @@ namespace ECS {
      * @return true si la entidad pertenece a todos los pools.
      * @return false en caso contrario.
      */
-    [[nodiscard]] bool AllHave(EntityID entity) const noexcept
+    [[nodiscard]] bool
+      AllHave(EntityID entity) const noexcept
     {
       return std::apply(
         [entity](auto*... pools) noexcept {

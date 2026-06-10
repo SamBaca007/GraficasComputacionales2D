@@ -12,7 +12,8 @@
  * También mantiene información relacionada con la vista activa
  * y el control temporal utilizado durante la ejecución.
  */
-class Window {
+class
+  Window {
 public:
 
   /**
@@ -48,7 +49,8 @@ public:
     * @return true si la ventana está activa.
     * @return false si ha sido cerrada.
     */
-  bool isOpen() const;
+  bool
+    isOpen() const;
 
   /**
    * @brief Limpia el contenido actual de la ventana.
@@ -58,7 +60,8 @@ public:
    *
    * @param color Color utilizado para limpiar la pantalla.
    */
-  void clear(
+  void
+    clear(
     const sf::Color& color = sf::Color(0, 0, 0, 255)
   );
 
@@ -71,7 +74,8 @@ public:
    * @param drawable Objeto que será dibujado.
    * @param states Estados de renderizado utilizados.
    */
-  void draw(
+  void
+    draw(
     const sf::Drawable& drawable,
     const sf::RenderStates& states =
     sf::RenderStates::Default
@@ -83,12 +87,14 @@ public:
    * Intercambia los buffers internos de la ventana para
    * mostrar los elementos dibujados durante el frame actual.
    */
-  void display();
+  void
+    display();
 
   /**
    * @brief Solicita el cierre de la ventana.
    */
-  void close();
+  void
+    close();
 
   /**
    * @brief Actualiza el estado interno de la ventana.
@@ -96,7 +102,8 @@ public:
    * Puede incluir el procesamiento de eventos, actualización
    * temporal y cualquier lógica relacionada con la ventana.
    */
-  void update();
+  void
+    update();
 
   /**
    * @brief Ejecuta el proceso de renderizado.
@@ -104,7 +111,8 @@ public:
    * Método encargado de coordinar el dibujado de los elementos
    * visibles durante el frame actual.
    */
-  void render();
+  void
+    render();
 
   /**
    * @brief Libera los recursos asociados a la ventana.
@@ -112,7 +120,8 @@ public:
    * Debe utilizarse cuando se desea destruir explícitamente
    * la instancia de renderizado.
    */
-  void destroy();
+  void
+    destroy();
 
   /**
    * @brief Ventana de renderizado principal.

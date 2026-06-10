@@ -2,7 +2,8 @@
 #include "Prerequisites.h"
 #include "ECS/Types.h"
 
-namespace ECS {
+namespace
+  ECS {
 
   /**
    * @class SparseSet
@@ -19,7 +20,8 @@ namespace ECS {
    * permitiendo iterar eficientemente sobre las entidades que
    * poseen un determinado componente.
    */
-  class SparseSet {
+  class
+    SparseSet {
   public:
 
     /**
@@ -30,7 +32,8 @@ namespace ECS {
     /**
      * @brief Destructor virtual por defecto.
      */
-    virtual ~SparseSet() = default;
+    virtual
+      ~SparseSet() = default;
 
     // =========================================================
     // Consultas
@@ -47,7 +50,8 @@ namespace ECS {
      * @return true si la entidad está almacenada.
      * @return false en caso contrario.
      */
-    [[nodiscard]] bool Contains(EntityID entity) const noexcept
+    [[nodiscard]] bool
+      Contains(EntityID entity) const noexcept
     {
       const EntityIndex idx = GetEntityIndex(entity);
 
@@ -75,7 +79,8 @@ namespace ECS {
      * @return true si no contiene entidades.
      * @return false en caso contrario.
      */
-    [[nodiscard]] bool Empty() const noexcept {
+    [[nodiscard]] bool
+      Empty() const noexcept {
       return m_dense.empty();
     }
 
@@ -87,7 +92,8 @@ namespace ECS {
      *
      * @return Referencia constante al vector de entidades.
      */
-    [[nodiscard]] const std::vector<EntityID>& GetEntities() const noexcept
+    [[nodiscard]] const std::vector<EntityID>&
+      GetEntities() const noexcept
     {
       return m_dense;
     }
@@ -109,7 +115,8 @@ namespace ECS {
      *
      * @param entity Entidad a eliminar.
      */
-    virtual void Remove(EntityID entity) {
+    virtual void
+      Remove(EntityID entity) {
       if (!Contains(entity))
         return;
 
@@ -132,7 +139,8 @@ namespace ECS {
      *
      * Vacía tanto el vector sparse como el vector dense.
      */
-    virtual void Clear()
+    virtual void
+      Clear()
     {
       m_sparse.clear();
       m_dense.clear();
@@ -151,7 +159,8 @@ namespace ECS {
      *
      * @return Índice asignado dentro del vector denso.
      */
-    EntityIndex InsertEntity(EntityID entity)
+    EntityIndex
+      InsertEntity(EntityID entity)
     {
       const EntityIndex sparseIdx = GetEntityIndex(entity);
       const EntityIndex denseIdx =
@@ -176,7 +185,8 @@ namespace ECS {
     /**
      * @brief Valor utilizado para representar una posición inválida.
      */
-    static constexpr EntityIndex INVALID =
+    static constexpr
+      EntityIndex INVALID =
       std::numeric_limits<EntityIndex>::max();
 
     /**

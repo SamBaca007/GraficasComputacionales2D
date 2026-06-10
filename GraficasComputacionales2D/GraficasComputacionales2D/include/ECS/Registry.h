@@ -15,7 +15,8 @@
  * - Registrar y actualizar sistemas.
  * - Proporcionar consultas sobre entidades y componentes.
  */
-namespace ECS {
+namespace
+  ECS {
   /**
    * @class Registry
    * @brief Administrador central del sistema ECS.
@@ -27,7 +28,8 @@ namespace ECS {
    * por un índice y una versión. Esto permite invalidar automáticamente
    * identificadores obsoletos cuando una entidad es destruida.
    */
-  class Registry {
+  class
+    Registry {
   public:
     /**
      * @brief Crea una nueva entidad.
@@ -258,7 +260,8 @@ namespace ECS {
      *
      * @param deltaTime Tiempo transcurrido desde el último frame.
      */
-    void UpdateSystems(float deltaTime)
+    void
+      UpdateSystems(float deltaTime)
     {
       for (auto& system : m_systems)
         if (system->IsEnabled())
@@ -270,7 +273,8 @@ namespace ECS {
      * Antes de eliminarlos invoca OnDestroy() para permitir
      * la liberación de recursos.
      */
-    void RemoveAllSystems()
+    void
+      RemoveAllSystems()
     {
       for (auto& system : m_systems)
         system->OnDestroy(*this);

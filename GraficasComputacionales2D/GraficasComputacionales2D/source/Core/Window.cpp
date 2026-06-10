@@ -63,7 +63,8 @@ Window::~Window() {
  * @return true si la ventana está abierta.
  * @return false si está cerrada.
  */
-bool Window::isOpen() const {
+bool
+Window::isOpen() const {
 
   if (m_window) {
     return m_window->isOpen();
@@ -82,7 +83,8 @@ bool Window::isOpen() const {
  *
  * @param color Color de limpieza.
  */
-void Window::clear(const sf::Color& color) {
+void
+Window::clear(const sf::Color& color) {
 
   if (m_window) {
     m_window->clear(color);
@@ -98,7 +100,8 @@ void Window::clear(const sf::Color& color) {
  * @param drawable Objeto derivado de sf::Drawable.
  * @param states Estados de renderizado utilizados.
  */
-void Window::draw(
+void
+Window::draw(
   const sf::Drawable& drawable,
   const sf::RenderStates& states
 ) {
@@ -117,7 +120,8 @@ void Window::draw(
  * Intercambia los buffers internos de SFML para presentar
  * el frame actual.
  */
-void Window::display() {
+void
+Window::display() {
 
   if (m_window) {
     m_window->display();
@@ -130,7 +134,8 @@ void Window::display() {
 /**
  * @brief Solicita el cierre de la ventana.
  */
-void Window::close() {
+void
+Window::close() {
 
   if (m_window) {
     m_window->close();
@@ -146,7 +151,8 @@ void Window::close() {
  * Reinicia el reloj interno y almacena el tiempo
  * transcurrido desde la última actualización.
  */
-void Window::update() {
+void
+Window::update() {
 
   deltaTime = clock.restart();
 }
@@ -157,7 +163,8 @@ void Window::update() {
  * Actualmente este método se encuentra vacío y queda
  * disponible para futuras ampliaciones del motor.
  */
-void Window::render() {
+void
+Window::render() {
 
 }
 
@@ -167,7 +174,8 @@ void Window::render() {
  * Reinicia el puntero inteligente y destruye la instancia
  * de sf::RenderWindow asociada.
  */
-void Window::destroy() {
+void
+Window::destroy() {
 
   m_window.reset();
 }

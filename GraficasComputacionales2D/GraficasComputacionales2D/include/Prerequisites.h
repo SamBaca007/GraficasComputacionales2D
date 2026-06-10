@@ -99,7 +99,8 @@
  * @brief Identifica los distintos tipos de figuras geométricas
  *        soportadas por el sistema.
  */
-enum ShapeType {
+enum
+  ShapeType {
 
     /** No existe ninguna figura asociada. */
     EMPTY = 0,

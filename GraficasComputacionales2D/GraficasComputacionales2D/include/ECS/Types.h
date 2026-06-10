@@ -12,7 +12,8 @@
 // guardado en otro sitio queda invalidado.
 // =========================================================
 
-namespace ECS {
+namespace
+  ECS {
   // Tipos Primitvos
   using EntityIndex = uint32_t; // Índice de la entidad en el array
   using EntityVersion = uint32_t; // Versión de la entidad (para invalidar IDs antiguos)
@@ -20,7 +21,8 @@ namespace ECS {
   using ComponentTypeID = uint32_t; // ID de tipo para componentes
 
   // Valor centinela para "ninguna entidad"
-  inline constexpr EntityID NULL_ENTITY = std::numeric_limits<EntityID>::max();
+  inline constexpr
+    EntityID NULL_ENTITY = std::numeric_limits<EntityID>::max();
 
   // Empaquetado / Desempaquetado de EntityID
 
@@ -32,7 +34,8 @@ namespace ECS {
  * * @param id El identificador único completo de la entidad (64 bits).
  * @return EntityIndex El índice base extraído de la entidad (32 bits).
  */
-  [[nodiscard]] inline EntityIndex GetEntityIndex(EntityID id) noexcept
+  [[nodiscard]] inline
+    EntityIndex GetEntityIndex(EntityID id) noexcept
   {
     return static_cast<EntityIndex>(id & 0xFFFF'FFFFull);
   }
@@ -45,7 +48,8 @@ namespace ECS {
  * * @param id El identificador único completo de la entidad (64 bits).
  * @return EntityVersion La versión extraída de la entidad (32 bits).
  */
-  [[nodiscard]] inline EntityVersion GetEntityVersion(EntityID id) noexcept
+  [[nodiscard]] inline
+    EntityVersion GetEntityVersion(EntityID id) noexcept
   {
     return static_cast<EntityVersion>((id >> 32) & 0xFFFF'FFFFull);
   }
@@ -59,7 +63,8 @@ namespace ECS {
  * @param version La versión o generación de la entidad (32 bits).
  * @return EntityID El identificador único combinado (64 bits).
  */
-  [[nodiscard]] inline EntityID MakeEntityID(EntityIndex index,
+  [[nodiscard]] inline
+    EntityID MakeEntityID(EntityIndex index,
     EntityVersion version) noexcept
   {
     return (static_cast<EntityID>(version) << 32) | static_cast<EntityID>(index);
@@ -76,7 +81,8 @@ namespace ECS {
  * subyacente para la asignación dinámica de IDs de los componentes.
  * * @return ComponentTypeID Un identificador único secuencial.
  */
-  [[nodiscard]] ComponentTypeID NextComponentTypeID() noexcept
+  [[nodiscard]] ComponentTypeID
+    NextComponentTypeID() noexcept
   {
     static ComponentTypeID counter = 0;
     return counter++;
@@ -93,7 +99,8 @@ namespace ECS {
  * @return ComponentTypeID El identificador único y constante asignado al tipo T.
  */
   template<typename T>
-  [[nodiscard]] ComponentTypeID NextComponentTypeID() noexcept
+  [[nodiscard]] ComponentTypeID
+    NextComponentTypeID() noexcept
   {
     static const ComponentTypeID id = NextComponentTypeID();
     return id;

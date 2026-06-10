@@ -5,7 +5,8 @@
  * @brief Define la clase base para todos los sistemas del motor ECS.
  */
 
-namespace ECS {
+namespace
+  ECS {
 
   /**
    * @class Registry
@@ -25,13 +26,15 @@ namespace ECS {
    * - OnUpdate(): llamado cada frame.
    * - OnDestroy(): llamado al destruir o desregistrar el sistema.
    */
-  class System {
+  class
+    System {
   public:
 
     /**
      * @brief Destructor virtual por defecto.
      */
-    virtual ~System() = default;
+    virtual
+      ~System() = default;
 
     /**
      * @brief Inicializa el sistema.
@@ -41,7 +44,8 @@ namespace ECS {
      *
      * @param registry Referencia al registro ECS.
      */
-    virtual void OnStart(Registry& registry) {}
+    virtual void
+      OnStart(Registry& registry) {}
 
     /**
      * @brief Ejecuta la lógica principal del sistema.
@@ -51,7 +55,8 @@ namespace ECS {
      * @param registry Referencia al registro ECS.
      * @param deltaTime Tiempo transcurrido desde el frame anterior.
      */
-    virtual void OnUpdate(Registry& registry, float deltaTime) = 0;
+    virtual void
+      OnUpdate(Registry& registry, float deltaTime) = 0;
 
     /**
      * @brief Libera los recursos utilizados por el sistema.
@@ -60,14 +65,16 @@ namespace ECS {
      *
      * @param registry Referencia al registro ECS.
      */
-    virtual void OnDestroy(Registry& registry) {}
+    virtual void
+      OnDestroy(Registry& registry) {}
 
     /**
      * @brief Activa o desactiva el sistema.
      *
      * @param enabled Estado deseado del sistema.
      */
-    void SetEnabled(bool enabled) noexcept { m_enabled = enabled; }
+    void
+      SetEnabled(bool enabled) noexcept { m_enabled = enabled; }
 
     /**
      * @brief Indica si el sistema está activo.
@@ -75,7 +82,8 @@ namespace ECS {
      * @return true si el sistema está habilitado.
      * @return false si el sistema está deshabilitado.
      */
-    [[nodiscard]] bool IsEnabled() const noexcept { return m_enabled; }
+    [[nodiscard]] bool
+      IsEnabled() const noexcept { return m_enabled; }
 
   private:
 
