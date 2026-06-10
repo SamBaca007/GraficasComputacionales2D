@@ -2,39 +2,109 @@
 #include "Core/Window.h"
 #include "Core/CShape.h"
 
+/**
+ * @file main.cpp
+ * @brief Punto de entrada de la aplicación.
+ */
+
+/**
+ * @brief Ventana principal de la aplicación.
+ *
+ * Se almacena mediante un puntero inteligente para garantizar
+ * la liberación automática de recursos.
+ */
 std::unique_ptr<Window> g_window;
+
+/**
+ * @brief Figura utilizada durante la demostración.
+ *
+ * Se inicializa como un círculo y posteriormente se modifica
+ * su color antes de comenzar el bucle principal.
+ */
 CShape Circle(ShapeType::CIRCLE);
 
+/**
+ * @brief Libera los recursos globales de la aplicación.
+ *
+ * Reinicia el puntero inteligente asociado a la ventana,
+ * provocando la destrucción de la misma.
+ */
 void destroy() {
   g_window.reset();
 }
 
+/**
+ * @brief Punto de entrada de la aplicación.
+ *
+ * Crea una ventana de renderizado, configura una figura
+ * geométrica y ejecuta el bucle principal del programa.
+ *
+ * Durante cada iteración:
+ * - Se procesan los eventos de la ventana.
+ * - Se limpia la pantalla.
+ * - Se renderizan los elementos de la escena.
+ * - Se presenta el frame resultante.
+ *
+ * @return Código de finalización del programa.
+ */
 int main()
 {
-  // create the window
-  g_window = std::make_unique<Window>(800, 600, "My window");
-  // set the color shape to green
-  Circle.getShape()->setFillColor(sf::Color(100, 250, 50));
+  // =========================================================
+  // Inicialización
+  // =========================================================
 
-  // run the program as long as the window is open
+  /// Creación de la ventana principal.
+  g_window =
+    std::make_unique<Window>(
+      800,
+      600,
+      "My window"
+    );
+
+  /// Configuración del color del círculo.
+  Circle.getShape()->setFillColor(
+    sf::Color(100, 250, 50)
+  );
+
+  // =========================================================
+  // Bucle principal
+  // =========================================================
+
   while (g_window->isOpen())
   {
-    // check all the window's events that were triggered since the last iteration of the loop
-    while (const std::optional event = g_window->m_window->pollEvent())
+    // -------------------------------------------------------
+    // Procesamiento de eventos
+    // -------------------------------------------------------
+
+    while (
+      const std::optional event =
+      g_window->m_window->pollEvent()
+      )
     {
-      // "close requested" event: we close the window
+      // Cierre solicitado por el usuario.
       if (event->is<sf::Event::Closed>())
         g_window->close();
     }
 
-    // clear the window with black color
+    // -------------------------------------------------------
+    // Renderizado
+    // -------------------------------------------------------
+
+    /// Limpia la pantalla con color negro.
     g_window->clear(sf::Color::Black);
 
-    // draw everything here...
+    /// Dibuja la figura de prueba.
     Circle.draw(*g_window);
 
-    // end the current frame
+    /// Presenta el frame en pantalla.
     g_window->display();
   }
+
+  // =========================================================
+  // Liberación de recursos
+  // =========================================================
+
   destroy();
+
+  return 0;
 }
