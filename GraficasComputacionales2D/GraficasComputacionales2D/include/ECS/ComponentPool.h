@@ -1,110 +1,109 @@
 #pragma once
-#include <Prerequisites.h>
-#include <ECS/SparseSet.h>
+#include "Prerequisites.h"
+#include "SparseSet.h"
 
-// ===========================================================
-// ECS :: Component Pool.h
-// 
-// IComponentPool - Interfaz polimórfica sin tipo para que
-// Registry pueda gestionar pools heterogéneos.
-// 
-// ComponentPool<t> - almacena componentes de tipo T en un
-// dense array paralelo al de SparseSet.
-// El Remove usa swap-with-last igual que el SparseSet para
-// mantener los dos arrays sincronizados.
-// ===========================================================
+// ============================================================
+//  ECS :: ComponentPool.h
+//
+//  IComponentPool — interfaz polimórfica sin tipo para que
+//  Registry pueda gestionar pools heterogéneos.
+//
+//  ComponentPool<T> — almacena componentes de tipo T en un
+//  dense array paralelo al de SparseSet.
+//  El Remove usa swap-with-last igual que el SparseSet para
+//  mantener los dos arrays sincronizados.
+// ============================================================
 
 namespace
-ECS {
-  // Interfaz Polimórfica
-  class
-  IComponentPool : public SparseSet {
-  public:
-    virtual
-    ~IComponentPool() = default;
+	ECS {
+	// Interfaz polimórfica
+	class
+		IComponentPool : public SparseSet {
+	public:
+		virtual
+			~IComponentPool() = default;
 
-    // Elimina el componente de la entidad si existe
-    virtual void
-    RemoveEntity(EntityID entity) = 0;
+		// Elimina el componente de la entidad si existe
+		virtual void
+			RemoveEntity(EntityID entity) = 0;
 
-    // Puntero sin tipo al componente (para el Serializer)
-    virtual void
-    GetRaw(EntityID entity) noexcept = 0;
-  };
+		// Puntero sin tipo al componente (para el Serializer)
+		virtual void*
+			GetRaw(EntityID entity) noexcept = 0;
+	};
 
-  // Pool tipado
-  template<typename T>
-  class
-  ComponentPool final : IComponentPool {
-  public:
-    // Añadir
-    template<typename... Args> T&
-      Add(EntityID entity, Args&&... args) {
-      assert(!Contains(entity) && "La entidad no tiene este componente");
-      InsertEntity(entity); // registra en sparse/dense
-      m_components.emplace_back(std::forward<Args>(args)...);
-      return m_components.back();
-    }
+	// Pool tipado
+	template<typename T>
+	class
+		ComponentPool final : public IComponentPool {
+	public:
+		// Añadir
+		template<typename... Args> T&
+			Add(EntityID entity, Args&&... args) {
+			assert(!Contains(entity) && "La entidad ya tiene este componente");
+			InsertEntity(entity); // registra en sparse/dense
+			m_components.emplace_back(std::forward<Args>(args)...);
+			return m_components.back();
+		}
 
-    // Obtener
-    [[nodiscard]] T&
-    Get(EntityID entity) noexcept {
-      assert(Contains(entity) && "La entidad no tiene este componente");
-      return m_components[m_sparse[GetEntityIndex(entity)]];
-    }
+		// Obtener
+		[[nodiscard]] T&
+			Get(EntityID entity) noexcept {
+			assert(Contains(entity) && "La entidad no tiene este componente");
+			return m_components[m_sparse[GetEntityIndex(entity)]];
+		}
 
-    [[nodiscard]] const T&
-      Get(EntityID entity) const noexcept {
-      assert(Contains(entity) && "La entidad no tiene este componente");
-      return m_components[m_sparse[GetEntityIndex(entity)]];
-    }
+		[[nodiscard]] const T&
+			Get(EntityID entity) const noexcept {
+			assert(Contains(entity) && "La entidad no tiene este componente");
+			return m_components[m_sparse[GetEntityIndex(entity)]];
+		}
 
-    // Devuelve nullptr si la entidad no tiene el componente
-    [[nodiscard]] T*
-    TryGet(EntityID entity) noexcept {
-      if (!Contains(entity)) return nullptr;
-      return &m_components[m_sparse[GetEntityIndex(entity)]];
-    }
+		// Devuelve nullptr si la entidad no tiene el componente
+		[[nodiscard]] T*
+			TryGet(EntityID entity) noexcept {
+			if (!Contains(entity)) return nullptr;
+			return &m_components[m_sparse[GetEntityIndex(entity)]];
+		}
 
-    // Eliminar (swap-with-last)
-    // IMPORTANTE: Primero sincronizamos a m_components y luego
-    // llamamos a SparseSet::Remove para que sincroniza a m_dense.
-    // Ambos swap usan el mismo denseIdx, así quedan alineados.
+		// Eliminar (swap-with-last)
+		// IMPORTANTE: primero sincronizamos m_components y luego
+		// llamamos a SparseSet::Remove para que sincronice m_dense.
+		// Ambos swap usan el mismo denseIdx, así quedan alineados.
+		void
+			Remove(EntityID entity) override {
+			if (!Contains(entity)) return;
 
-    void
-    Remove(EntityID entity) override {
-      if (!Contains(entity)) return;
+			const EntityIndex denseIdx = m_sparse[GetEntityIndex(entity)];
 
-      const EntityIndex denseIdx = m_sparse[GetEntityIndex(entity)];
+			// Mueve el último componente al hueco
+			m_components[denseIdx] = std::move(m_components.back());
+			m_components.pop_back();
 
-      // Mueve el último componente al hueco
-      m_components[denseIdx] = std::move(m_components.back());
-      m_components.pop_back();
+			// Sincroniza sparse/dense (base class)
+			SparseSet::Remove(entity);
+		}
 
-      // Sincroniza sparse/dense (base class)
-      SparseSet::Remove(entity);
-    }
+		void
+			RemoveEntity(EntityID entity) override { Remove(entity); }
 
-    void
-    RemoveEntity(EntityID entity) override { Remove(entity); }
+		void*
+			GetRaw(EntityID entity) noexcept override { return TryGet(entity); }
 
-    void*
-      GetRaw(EntityID entity) noexcept override { return TryGet(entity); }
+		// Acceso masivo (útil para el Serializer / sistemas)
+		[[nodiscard]] std::vector<T>&
+			GetComponents() noexcept { return m_components; }
 
-    // Acceso masivo (útil para el Serializer / sistemas)
-    [[nodiscard]] std::vector<T>&
-    GetComponents() noexcept { return m_components; }
+		[[nodiscard]] const std::vector<T>&
+			GetComponents() const noexcept { return m_components; }
 
-    [[nodiscard]] const std::vector<T>&
-    GetComponents() const noexcept { return m_components; }
+		void
+			Clear() override {
+			SparseSet::Clear();
+			m_components.clear();
+		}
 
-    void
-    Clear() override {
-      SparseSet::Clear();
-      m_components.clear();
-    }
-
-  private:
-    std::vector<T> m_components; // Paralelo a m_dense
-  };
+	private:
+		std::vector<T> m_components;   // Paralelo a m_dense
+	};
 }

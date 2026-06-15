@@ -1,6 +1,12 @@
-#include <Prerequisites.h>
+#include "Prerequisites.h"
 #include "Core/Window.h"
 #include "Core/CShape.h"
+#include "ECS/Registry.h"
+#include "ECS/Components/Render.h"
+#include "ECS/Components/Transform.h"
+#include "ECS/Systems/RenderSystem.h"
+#include <optional>
+
 
 /**
  * @file main.cpp
@@ -13,7 +19,7 @@
  * Se almacena mediante un puntero inteligente para garantizar
  * la liberación automática de recursos.
  */
-std::unique_ptr<Window> g_window;
+Window g_window(Window(800, 600, "Labrid Engine"));
 
 /**
  * @brief Figura utilizada durante la demostración.
@@ -21,7 +27,14 @@ std::unique_ptr<Window> g_window;
  * Se inicializa como un círculo y posteriormente se modifica
  * su color antes de comenzar el bucle principal.
  */
-CShape Circle(ShapeType::CIRCLE);
+// CShape Circle(ShapeType::CIRCLE);
+// CShape Circle(ShapeType::LINE);
+
+// Registro: Script encargado de administrar los sistemas y entidades
+// Paso 1:
+// Paso 2: Creación de entidades
+
+ECS::Registry registry;
 
 /**
  * @brief Libera los recursos globales de la aplicación.
@@ -31,7 +44,7 @@ CShape Circle(ShapeType::CIRCLE);
  */
 void
 destroy() {
-  g_window.reset();
+  // g_window.reset();
 }
 
 /**
@@ -51,62 +64,31 @@ destroy() {
 int
 main()
 {
-  // =========================================================
-  // Inicialización
-  // =========================================================
+  registry.AddSystem<ECS::RenderSystem>(g_window);
 
-  /// Creación de la ventana principal.
-  g_window =
-    std::make_unique<Window>(
-      800,
-      600,
-      "My window"
-    );
+  ECS::EntityID circle = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 400.f, 300.f });
+  registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE, sf::Color(100, 250, 50)));
 
-  /// Configuración del color del círculo.
-  Circle.getShape()->setFillColor(
-    sf::Color(100, 250, 50)
-  );
-
-  // =========================================================
-  // Bucle principal
-  // =========================================================
-
-  while (g_window->isOpen())
-  {
-    // -------------------------------------------------------
-    // Procesamiento de eventos
-    // -------------------------------------------------------
-
-    while (
-      const std::optional event =
-      g_window->m_window->pollEvent()
-      )
-    {
-      // Cierre solicitado por el usuario.
-      if (event->is<sf::Event::Closed>())
-        g_window->close();
+  // run the program as long as the window is open
+  while (g_window.isOpen()) {
+    while (const std::optional event = g_window.m_window->pollEvent()) {
+      if (event->is<sf::Event::Closed>()) {
+        g_window.close();
+      }
     }
 
-    // -------------------------------------------------------
-    // Renderizado
-    // -------------------------------------------------------
+    float dt = 1.f / 60.f;
 
-    /// Limpia la pantalla con color negro.
-    g_window->clear(sf::Color::Black);
+    // 1. Limpiar pantalla
+    g_window.clear(sf::Color::Black);
 
-    /// Dibuja la figura de prueba.
-    Circle.draw(*g_window);
+    // 2. ACTUALIZAR SISTEMAS (Aquí es donde RenderSystem dibuja el círculo)
+    registry.UpdateSystems(dt);
 
-    /// Presenta el frame en pantalla.
-    g_window->display();
+    // 3. Mostrar en pantalla
+    g_window.display();
   }
-
-  // =========================================================
-  // Liberación de recursos
-  // =========================================================
-
-  destroy();
 
   return 0;
 }
