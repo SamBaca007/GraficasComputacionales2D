@@ -18,11 +18,10 @@
 #include <cstddef>
 #include <queue>
 
-
-
-
 // Third Parties
 #include <SFML/Graphics.hpp>
+#include <imgui.h>
+#include <imgui-SFML.h>
 
 // MACRO for safe release of resources
 #define SAFE_PTR_RELEASE(x) if(x != nullptr) { delete x; x = nullptr; }

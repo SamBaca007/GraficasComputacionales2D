@@ -2,21 +2,16 @@
 
 Window::Window(int width, int height, const std::string& title) {
 
-	m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode({ static_cast<unsigned int>(width),
-																																static_cast<unsigned int>(height) }),
-		title,
-		sf::Style::Default);
+	m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode({ static_cast<unsigned int>
+		(width), static_cast<unsigned int>(height) }), title, sf::Style::Default);
 	if (m_window) {
 		m_window->setFramerateLimit(60);
 		MESSAGE("Window", "Window", "Window created successfully");
-
 	}
 	else {
 		ERROR("Window", "Window", "Failed to create window");
-
 	}
 }
-
 
 bool
 Window::isOpen() const {
