@@ -56,9 +56,6 @@
     <ClInclude Include="include\ECS\SparseSet.h">
       <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
-    <ClInclude Include="View.h">
-      <Filter>Archivos de encabezado\ECS</Filter>
-    </ClInclude>
     <ClInclude Include="include\ECS\ComponentPool.h">
       <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
@@ -76,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="include\ECS\Components\Render.h">
       <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\View.h">
+      <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

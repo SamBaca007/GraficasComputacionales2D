@@ -1,5 +1,4 @@
 #pragma once
-#include "ECS/Types.h"
 
 // ============================================================
 //  ECS :: System.h
@@ -25,13 +24,13 @@ namespace ECS {
     virtual ~System() = default;
 
     // Inicialización: reservar recursos, suscribirse a eventos, etc.
-    virtual void OnStart(Registry& registry) {}
+    virtual void OnStart(Registry& /*registry*/) {}
 
     // Lógica frame-a-frame
     virtual void OnUpdate(Registry& registry, float deltaTime) = 0;
 
     // Limpieza al destruir el sistema
-    virtual void OnDestroy(Registry& registry) {}
+    virtual void OnDestroy(Registry& /*registry*/) {}
 
     // Opcional: activa/desactiva el sistema sin destruirlo
     void SetEnabled(bool enabled) noexcept { m_enabled = enabled; }

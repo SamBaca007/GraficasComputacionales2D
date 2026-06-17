@@ -180,8 +180,8 @@
     <ClInclude Include="include\ECS\System.h" />
     <ClInclude Include="include\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="include\ECS\Types.h" />
+    <ClInclude Include="include\ECS\View.h" />
     <ClInclude Include="include\Prerequisites.h" />
-    <ClInclude Include="View.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

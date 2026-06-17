@@ -1,22 +1,12 @@
 #pragma once
 #include "ECS/Types.h"
 #include "ECS/ComponentPool.h"
+#include "ECS/View.h"
 #include "ECS/System.h"
-#include <vector>
-#include <queue>
-#include <unordered_map>
-#include <memory>
-#include <cassert>
-
-// ¡MUY IMPORTANTE: NO incluyas View.h aquí arriba!
 
 namespace ECS {
-
-  // 1. Promesa al compilador: "View existirá, confía en mí"
-  template<typename... Components>
-  class View;
-
-  class Registry {
+  class
+    Registry {
   public:
     EntityID CreateEntity() {
       EntityIndex idx;
@@ -27,49 +17,68 @@ namespace ECS {
       else {
         idx = static_cast<EntityIndex>(m_versions.size());
         m_versions.push_back(0);
-        m_entities.push_back(NULL_ENTITY);
+        m_entities.push_back(NULL_ENTITY);   // placeholder
       }
+
       EntityID id = MakeEntityID(idx, m_versions[idx]);
       m_entities[idx] = id;
       return id;
     }
 
-    void DestroyEntity(EntityID entity) {
-      assert(IsAlive(entity) && "DestroyEntity: entidad invalida");
+    void
+      DestroyEntity(EntityID entity) {
+      assert(IsAlive(entity) && "DestroyEntity: entidad inválida o ya destruida");
+
+      // Elimina todos los componentes de esta entidad
       for (auto& [typeID, pool] : m_componentPools)
         pool->RemoveEntity(entity);
+
+      // Incrementa versión -> los IDs viejos quedan inválidos
       const EntityIndex idx = GetEntityIndex(entity);
       ++m_versions[idx];
       m_entities[idx] = NULL_ENTITY;
       m_freeList.push(idx);
     }
 
-    [[nodiscard]] bool IsAlive(EntityID entity) const noexcept {
+    [[nodiscard]] bool
+      IsAlive(EntityID entity) const noexcept {
       const EntityIndex idx = GetEntityIndex(entity);
       return idx < m_entities.size() && m_entities[idx] == entity;
     }
 
-    [[nodiscard]] std::size_t EntityCount() const noexcept {
+    [[nodiscard]] std::size_t
+      EntityCount() const noexcept {
       return m_entities.size() - m_freeList.size();
     }
 
-    [[nodiscard]] const std::vector<EntityID>& GetAllEntities() const noexcept {
+    // Todas las ranuras (incluye NULL_ENTITY para los huecos libres).
+    // Útil para el Serializer; filtra con IsAlive.
+    [[nodiscard]] const std::vector<EntityID>&
+      GetAllEntities() const noexcept {
       return m_entities;
     }
 
-    template<typename T, typename... Args> T& AddComponent(EntityID entity, Args&&... args) {
-      assert(IsAlive(entity) && "AddComponent: entidad invalida");
+    //  Componentes
+
+    // Añade un componente a la entidad y devuelve su referencia.
+    // Acepta argumentos de construcción directos (perfect-forward).
+    template<typename T, typename... Args> T&
+      AddComponent(EntityID entity, Args&&... args) {
+      assert(IsAlive(entity) && "AddComponent: entidad inválida");
       return GetOrCreatePool<T>()->Add(entity, std::forward<Args>(args)...);
     }
 
-    template<typename T> void RemoveComponent(EntityID entity) {
+    // Elimina el componente T de la entidad (no-op si no lo tiene).
+    template<typename T> void
+      RemoveComponent(EntityID entity) {
       if (auto* pool = GetPool<T>())
         pool->Remove(entity);
     }
 
+    // Reemplaza el componente (o lo añade si no existía).
     template<typename T>
     T& SetComponent(EntityID entity, T value) {
-      assert(IsAlive(entity) && "SetComponent: entidad invalida");
+      assert(IsAlive(entity) && "SetComponent: entidad inválida");
       auto* pool = GetOrCreatePool<T>();
       if (pool->Contains(entity)) {
         pool->Get(entity) = std::move(value);
@@ -84,34 +93,43 @@ namespace ECS {
       return pool && pool->Contains(entity);
     }
 
+    // Acceso garantizado (assert si no existe).
     template<typename T>
     [[nodiscard]] T& GetComponent(EntityID entity) {
       assert(IsAlive(entity));
       auto* pool = GetPool<T>();
-      assert(pool && "GetComponent: pool no existe");
+      assert(pool && "GetComponent: pool no existe para este tipo");
       return pool->Get(entity);
     }
 
     template<typename T>
-    [[nodiscard]] const T& GetComponent(EntityID entity) const {
+    [[nodiscard]] const T& GetComponent(EntityID entity) const
+    {
       assert(IsAlive(entity));
       const auto* pool = GetPoolConst<T>();
-      assert(pool && "GetComponent: pool no existe");
+      assert(pool && "GetComponent: pool no existe para este tipo");
       return pool->Get(entity);
     }
 
+    // Acceso seguro: devuelve nullptr si la entidad no tiene el componente.
     template<typename T>
-    [[nodiscard]] T* TryGetComponent(EntityID entity) noexcept {
+    [[nodiscard]] T* TryGetComponent(EntityID entity) noexcept
+    {
       auto* pool = GetPool<T>();
       return pool ? pool->TryGet(entity) : nullptr;
     }
 
-    // 2. SOLO DECLARAMOS GetView aquí adentro. No lo implementamos aún.
+    //  Views (queries multi-componente)
+    // Ejemplo: registry.GetView<Transform, Velocity>()
     template<typename... Components>
-    [[nodiscard]] View<Components...> GetView();
+    [[nodiscard]] View<Components...> GetView() {
+      return View<Components...>(GetOrCreatePool<Components>()...);
+    }
 
+    //  Sistemas
     template<typename T, typename... Args>
-    T& AddSystem(Args&&... args) {
+    T& AddSystem(Args&&... args)
+    {
       static_assert(std::is_base_of_v<System, T>, "T debe derivar de ECS::System");
       auto system = std::make_unique<T>(std::forward<Args>(args)...);
       T& ref = *system;
@@ -120,19 +138,24 @@ namespace ECS {
       return ref;
     }
 
-    void UpdateSystems(float deltaTime) {
+    void UpdateSystems(float deltaTime)
+    {
       for (auto& system : m_systems)
         if (system->IsEnabled())
           system->OnUpdate(*this, deltaTime);
     }
 
-    void RemoveAllSystems() {
+    void RemoveAllSystems()
+    {
       for (auto& system : m_systems)
         system->OnDestroy(*this);
       m_systems.clear();
     }
 
-    void Clear() {
+    //  Utilidades
+    // Destruye todo: entidades, componentes y sistemas.
+    void
+      Clear() {
       RemoveAllSystems();
       for (auto& [typeID, pool] : m_componentPools)
         pool->Clear();
@@ -141,17 +164,20 @@ namespace ECS {
       while (!m_freeList.empty()) m_freeList.pop();
     }
 
-    [[nodiscard]] const std::unordered_map<ComponentTypeID, std::unique_ptr<IComponentPool>>& GetPools() const noexcept {
-      return m_componentPools;
-    }
+    // Acceso a pools sin tipo (para el Serializer)
+    [[nodiscard]] const std::unordered_map<ComponentTypeID, std::unique_ptr<IComponentPool>>&
+      GetPools() const noexcept { return m_componentPools; }
 
   private:
+    // Helpers privados
     template<typename T>
     ComponentPool<T>* GetOrCreatePool() {
       const ComponentTypeID typeID = GetComponentTypeID<T>();
       auto it = m_componentPools.find(typeID);
-      if (it == m_componentPools.end()) {
-        auto [newIt, ok] = m_componentPools.emplace(typeID, std::make_unique<ComponentPool<T>>());
+      if (it == m_componentPools.end())
+      {
+        auto [newIt, ok] = m_componentPools.emplace(
+          typeID, std::make_unique<ComponentPool<T>>());
         return static_cast<ComponentPool<T>*>(newIt->second.get());
       }
       return static_cast<ComponentPool<T>*>(it->second.get());
@@ -161,37 +187,30 @@ namespace ECS {
     ComponentPool<T>* GetPool() noexcept {
       const ComponentTypeID typeID = GetComponentTypeID<T>();
       auto it = m_componentPools.find(typeID);
-      return (it != m_componentPools.end()) ? static_cast<ComponentPool<T>*>(it->second.get()) : nullptr;
+      return (it != m_componentPools.end())
+        ? static_cast<ComponentPool<T>*>(it->second.get())
+        : nullptr;
     }
 
     template<typename T>
     const ComponentPool<T>* GetPoolConst() const noexcept {
       const ComponentTypeID typeID = GetComponentTypeID<T>();
       auto it = m_componentPools.find(typeID);
-      return (it != m_componentPools.end()) ? static_cast<const ComponentPool<T>*>(it->second.get()) : nullptr;
+      return (it != m_componentPools.end())
+        ? static_cast<const ComponentPool<T>*>(it->second.get())
+        : nullptr;
     }
 
   private:
+    // Entidades
     std::vector<EntityID>      m_entities;
     std::vector<EntityVersion> m_versions;
     std::queue<EntityIndex>    m_freeList;
+
+    // Componentes
     std::unordered_map<ComponentTypeID, std::unique_ptr<IComponentPool>> m_componentPools;
+
+    // Sistemas
     std::vector<std::unique_ptr<System>> m_systems;
   };
-
-} // namespace ECS
-
-// =====================================================================
-// 3. AHORA SÍ: Incluimos View.h hasta el final, cuando Registry ya está
-// 100% definido y construido. ¡Esto destruye la dependencia circular!
-// =====================================================================
-#include "ECS/View.h"
-
-namespace ECS {
-  // 4. Implementamos GetView aquí abajo. Como View ya se incluyó,
-  // el compilador sabe exactamente cómo construirlo.
-  template<typename... Components>
-  inline View<Components...> Registry::GetView() {
-    return View<Components...>(GetOrCreatePool<Components>()...);
-  }
 }
