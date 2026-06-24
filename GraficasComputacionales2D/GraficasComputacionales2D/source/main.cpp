@@ -76,8 +76,8 @@ main() {
 		ImGui::ShowDemoWindow(&showDemoWindow);
 
     // =================================================================
-// 1. VENTANA DE JERARQUÍA (Entities)
-// =================================================================
+    // 1. VENTANA DE JERARQUÍA (Entities)
+    // =================================================================
     ImGui::Begin("Entities");
     {
       for (size_t i = 0; i < sceneEntities.size(); ++i) {
