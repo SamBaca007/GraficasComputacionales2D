@@ -98,5 +98,8 @@
     <ClInclude Include="include\ECS\View.h">
       <Filter>Archivos de encabezado\ECS</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Systems\UISystem.h">
+      <Filter>Archivos de encabezado\ECS\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
