@@ -101,5 +101,11 @@
     <ClInclude Include="include\ECS\Systems\UISystem.h">
       <Filter>Archivos de encabezado\ECS\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Systems\CameraSystem.h">
+      <Filter>Archivos de encabezado\ECS\Systems</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Components\Camera.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

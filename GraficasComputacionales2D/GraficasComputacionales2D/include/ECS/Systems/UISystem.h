@@ -4,6 +4,7 @@
 #include "ECS/Registry.h"
 #include "ECS/Components/Transform.h"
 #include "ECS/Components/Render.h"
+#include "ECS/Components/Camera.h"
 
 namespace ECS {
   class UISystem final : public System {
@@ -92,9 +93,34 @@ namespace ECS {
               }
             }
           }
+
+          // -------------------------------------------------------------
+          // SECCIÓN: CAMERA COMPONENT
+          // -------------------------------------------------------------
+          if (registry.HasComponent<ECS::Camera>(selectedEntity)) {
+            if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+              auto& cam = registry.GetComponent<ECS::Camera>(selectedEntity);
+
+              // La posición y la rotación de la cámara se editan arriba,
+              // en el bloque Transform. Aquí solo lo propio de la cámara.
+              ImGui::Checkbox("Active", &cam.active);
+              ImGui::DragFloat("Zoom", &cam.zoom, 0.01f, 0.05f, 10.f);
+              ImGui::DragFloat("Follow Speed", &cam.followSpeed, 0.1f, 0.f, 50.f);
+
+              // Objetivo a seguir (solo lectura aquí; muestra el ID).
+              if (cam.followTarget == ECS::NULL_ENTITY) {
+                ImGui::Text("Follow Target: (ninguno)");
+              }
+              else {
+                ImGui::Text("Follow Target: %llu", static_cast<unsigned long long>
+                  (cam.followTarget));
+              }
+            }
+          }
+
         }
         else {
-          ImGui::Text("Select an entity from the Hierarchy to inspect.");
+          ImGui::TextDisabled("Selecciona una entidad en el outliner.");
         }
       }
       ImGui::End();

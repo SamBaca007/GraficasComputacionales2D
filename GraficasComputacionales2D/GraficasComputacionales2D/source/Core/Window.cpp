@@ -66,6 +66,37 @@ Window::close()
 	}
 }
 
+void Window::handleResize(const sf::Vector2u& size) {
+	if (!m_window) {
+		ERROR("Window", "handleResize", "Window is null");
+		return;
+	}
+	// Vista 1:1 con el tamaño de la ventana -> sin estiramiento.
+	// Centro de la vista queda en (0,0) -> el origen del mundo queda en
+	// el CENTRO de la pantalla. Área visible: (-w/2, -h/2)..(w/2, h/2).
+	const sf::Vector2f fSize(static_cast<float>(size.x), static_cast<float>(size.y));
+
+	m_baseViewSize = fSize; // tamaño base (sin zoom para la cámara)
+	m_view.setSize(fSize);
+	m_view.setCenter({ 0.f, 0.f });
+	m_window->setView(m_view);
+}
+
+void
+Window::applyCameraView(const sf::Vector2f& center, float zoom, float rotationDeg) {
+	if (!m_window) {
+		ERROR("Window", "applyCameraView", "Window is null");
+		return;
+	}
+	if (zoom <= 0.f) zoom = 1.f; // evita división por cero / vista invertida
+
+	// Tamaño visible = tamaño base / zoom (más zoom -> menos mundo visible).
+	m_view.setSize(m_baseViewSize / zoom);
+	m_view.setCenter(center);
+	m_view.setRotation(sf::degrees(rotationDeg)); // rota toda la vista
+	m_window->setView(m_view);
+}
+
 void
 Window::update() {
 	// Almacena el deltaTime una sola vez
