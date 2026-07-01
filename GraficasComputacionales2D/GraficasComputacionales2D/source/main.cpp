@@ -33,18 +33,21 @@ int main() {
 
 	ECS::EntityID circle = registry.CreateEntity();
 	registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 400.f, 300.f });
-	registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE, sf::Color(100, 250, 50)));
+	registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE,
+		sf::Color(100, 250, 50), "Textures/Bricks.png"));
 
 	ECS::EntityID tri = registry.CreateEntity();
 	registry.AddComponent<ECS::Transform>(tri, sf::Vector2f{ 200.f, 200.f }, 45.f);
 	registry.AddComponent<ECS::Render>(tri, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
 
 	ECS::EntityID cam = registry.CreateEntity();
-	registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 0.f,0.f });
+	registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 400.f, 300.f });
 	auto& camComp = registry.AddComponent<ECS::Camera>(cam);
 	camComp.followTarget = circle; // la cámara sigue a su objetivo
 	camComp.followSpeed = 5.f; // sube para que se pegue más rápido
 	camComp.zoom = 1;
+	// Forzamos a la ventana a inicializar su View interna con su propio tamaño actual
+	g_window.handleResize(g_window.m_window->getSize());
 
 	while (g_window.isOpen()) {
 

@@ -18,6 +18,7 @@
 namespace ECS {
   struct Render {
     std::shared_ptr<sf::Shape> shape; // La forma de dibujar
+    std::shared_ptr<sf::Texture> texture; // sprite OPCIONAL (nullptr = sin sprite)
     sf::Color fillColor{ sf::Color::White }; // Color de relleno
     bool visible{ true }; // Permite ocultar sin quitar el componente
 
@@ -28,12 +29,40 @@ namespace ECS {
       : shape(std::move(s)), fillColor(color) {
     }
 
+    // Sprite opcional
+    // Carga una textura desde disco y la aplica a la figura.
+    // Devuelve false si la figura es nula o el archivo no carga.
+    // La textura se conserva en 'texture' (la figura solo
+    // guarda un puntero crudo en ella).
+    bool SetTexture(const std::string& path, bool resetRect = true) {
+      if (!shape) return false;
+      auto tex = std::make_shared<sf::Texture>();
+      if (!tex->loadFromFile(path)) return false; // No toca el estado si falla
+      texture = std::move(tex);
+      shape->setTexture(texture.get(), resetRect); // resetRect ajusta el rect al tamaño
+      return true;
+    }
+
+    // Aplica una textura ya cargada (compartida entre entidades -> eficiente)
+    void SetTexture(std::shared_ptr<sf::Texture> tex, bool resetRect = true) {
+      if (!shape) return;
+      texture = std::move(tex);
+      shape->setTexture(texture ? texture.get() : nullptr, resetRect);
+    }
+
+    // Quita el sprite y vuelve a la figura de color sólido.
+    void ClearTexture() {
+      if (shape)shape->setTexture(nullptr);
+      texture.reset();
+    }
+
     // Factory de conveniencia (reusa tu enum ShapeType)
     // Crea la forma centrada en su origen, para que el Transform
     // la posicione por su CENTRO (no la esquina superior izquierda).
 
     [[nodiscard]] static Render
-      Make(ShapeType type, sf::Color color = sf::Color::White) {
+      Make(ShapeType type, sf::Color color = sf::Color::White,
+        const std::string& texturePath = "") {
       std::shared_ptr<sf::Shape> s;
       switch (type) {
       case CIRCLE: {
@@ -62,7 +91,11 @@ namespace ECS {
         break;
       }
       if (s) s->setFillColor(color);
-      return Render{ s, color };
+      Render render { s, color };
+      // Si se pasó una ruta, intenta cargar el sprite (silencioso si falla)
+      if (!texturePath.empty())
+        render.SetTexture(texturePath);
+      return render;
     }
   };
 } // Namespace ECS
