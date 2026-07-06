@@ -40,4 +40,4 @@ namespace ECS {
     bool m_enabled = true;
   };
 
-} // namespace ECS
+} // Namespace ECS

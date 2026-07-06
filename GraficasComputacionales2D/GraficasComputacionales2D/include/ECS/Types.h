@@ -24,25 +24,25 @@ namespace ECS {
 
 	// Empaquetado / desempaquetado de EntityID
 	/**
- * @brief Extrae el índice de entidad almacenado dentro de un EntityID.
- *
- * Esta función obtiene los 32 bits inferiores de un identificador de entidad.
- * En este sistema, el EntityID está compuesto por dos partes:
- *
- * - Bits 0  - 31: índice de la entidad.
- * - Bits 32 - 63: versión de la entidad.
- *
- * El índice normalmente se utiliza para acceder a la posición de la entidad
- * dentro de un arreglo, pool, sparse set o estructura interna del ECS.
- *
- * @param id Identificador completo de la entidad.
- *
- * @return EntityIndex Índice de la entidad contenido en los 32 bits inferiores.
- *
- * @note La función no modifica ningún estado interno.
- * @note Se marca como noexcept porque no lanza excepciones.
- * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el resultado.
- */
+   * @brief Extrae el índice de entidad almacenado dentro de un EntityID.
+   *
+   * Esta función obtiene los 32 bits inferiores de un identificador de entidad.
+   * En este sistema, el EntityID está compuesto por dos partes:
+   *
+   * - Bits 0  - 31: índice de la entidad.
+   * - Bits 32 - 63: versión de la entidad.
+   *
+   * El índice normalmente se utiliza para acceder a la posición de la entidad
+   * dentro de un arreglo, pool, sparse set o estructura interna del ECS.
+   *
+   * @param id Identificador completo de la entidad.
+   *
+   * @return EntityIndex Índice de la entidad contenido en los 32 bits inferiores.
+   *
+   * @note La función no modifica ningún estado interno.
+   * @note Se marca como noexcept porque no lanza excepciones.
+	 * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el resultado.
+	 */
 	[[nodiscard]] inline EntityIndex GetEntityIndex(EntityID id) noexcept
 	{
 		return static_cast<EntityIndex>(id & 0xFFFF'FFFFull);
@@ -107,24 +107,24 @@ namespace ECS {
 	// Cada tipo T obtiene un ID único en tiempo de ejecución
 	// la primera vez que se llama a GetComponentTypeID<T>().
 	/**
- * @brief Genera el siguiente identificador único para un tipo de componente.
- *
- * Esta función mantiene un contador estático interno que se incrementa cada vez
- * que se solicita un nuevo ComponentTypeID. Su propósito es asignar un ID único
- * a cada tipo de componente registrado dentro del sistema ECS.
- *
- * El primer componente registrado recibirá el ID 0, el siguiente el ID 1,
- * después el ID 2, y así sucesivamente.
- *
- * @return ComponentTypeID Nuevo identificador único para un tipo de componente.
- *
- * @note El contador es estático, por lo que conserva su valor entre llamadas.
- * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el ID generado.
- * @note Se marca como noexcept porque no lanza excepciones.
- *
- * @warning El orden de los IDs depende del orden en que se soliciten por primera vez.
- * @warning Esta versión no es segura para inicialización concurrente desde múltiples hilos.
- */
+   * @brief Genera el siguiente identificador único para un tipo de componente.
+   *
+   * Esta función mantiene un contador estático interno que se incrementa cada vez
+   * que se solicita un nuevo ComponentTypeID. Su propósito es asignar un ID único
+   * a cada tipo de componente registrado dentro del sistema ECS.
+   *
+   * El primer componente registrado recibirá el ID 0, el siguiente el ID 1,
+   * después el ID 2, y así sucesivamente.
+   *
+   * @return ComponentTypeID Nuevo identificador único para un tipo de componente.
+   *
+   * @note El contador es estático, por lo que conserva su valor entre llamadas.
+   * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el ID generado.
+   * @note Se marca como noexcept porque no lanza excepciones.
+   *
+   * @warning El orden de los IDs depende del orden en que se soliciten por primera vez.
+   * @warning Esta versión no es segura para inicialización concurrente desde múltiples hilos.
+   */
 	[[nodiscard]] inline ComponentTypeID NextComponentTypeID() noexcept
 	{
 		static ComponentTypeID counter = 0;
@@ -163,4 +163,4 @@ namespace ECS {
 		static const ComponentTypeID id = NextComponentTypeID();
 		return id;
 	}
-}
+} // Namespace ECS

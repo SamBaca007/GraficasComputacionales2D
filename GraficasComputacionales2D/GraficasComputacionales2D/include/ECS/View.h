@@ -79,4 +79,4 @@ namespace ECS {
     std::tuple<ComponentPool<Components>*...> m_pools;
     const SparseSet* m_smallest = nullptr;
   };
-}
+} // Namespace ECS

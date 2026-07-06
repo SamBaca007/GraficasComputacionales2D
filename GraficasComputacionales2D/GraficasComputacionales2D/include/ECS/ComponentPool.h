@@ -106,4 +106,4 @@ namespace
 	private:
 		std::vector<T> m_components;   // Paralelo a m_dense
 	};
-}
+} // Namespace ECS

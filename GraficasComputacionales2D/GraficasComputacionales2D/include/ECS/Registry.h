@@ -213,4 +213,4 @@ namespace ECS {
     // Sistemas
     std::vector<std::unique_ptr<System>> m_systems;
   };
-}
+} // Namespace ECS

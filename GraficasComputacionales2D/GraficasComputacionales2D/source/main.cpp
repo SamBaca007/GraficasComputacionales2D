@@ -7,6 +7,7 @@
 #include "ECS/Systems/CameraSystem.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/UISystem.h"
+#include "ECS/Systems/SteeringSystem.h" // Ya lo tenías incluido, ¡perfecto!
 
 Window g_window(Window(800, 600, "Surreal Engine 2D"));
 ECS::Registry registry;
@@ -17,6 +18,11 @@ void destroy()
 }
 
 int main() {
+	// ==========================================
+	// REGISTRO DE SISTEMAS
+	// El orden importa: Primero calculamos IA/Física, luego Cámara, luego Render y al final la UI
+	// ==========================================
+	registry.AddSystem<ECS::SteeringSystem>(); // <-- NUEVO: Sistema de Steering agregado aquí
 	registry.AddSystem<ECS::CameraSystem>(g_window);
 	registry.AddSystem<ECS::RenderSystem>(g_window);
 	registry.AddSystem<ECS::UISystem>();
@@ -31,6 +37,9 @@ int main() {
 	sf::Clock deltaClock;
 	bool showDemoWindow = true;
 
+	// ==========================================
+	// CREACIÓN DE ENTIDADES
+	// ==========================================
 	ECS::EntityID circle = registry.CreateEntity();
 	registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 400.f, 300.f });
 	registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE,
@@ -40,12 +49,27 @@ int main() {
 	registry.AddComponent<ECS::Transform>(tri, sf::Vector2f{ 200.f, 200.f }, 45.f);
 	registry.AddComponent<ECS::Render>(tri, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
 
+	// ---> NUEVO: Nuestro Agente Inteligente <---
+	ECS::EntityID agent = registry.CreateEntity();
+	registry.AddComponent<ECS::Transform>(agent, sf::Vector2f{ 100.f, 100.f });
+	registry.AddComponent<ECS::Render>(agent, ECS::Render::Make(TRIANGLE, sf::Color::Green));
+
+	auto& kinematic = registry.AddComponent<ECS::Kinematic>(agent);
+	kinematic.maxSpeed = 250.f;
+	kinematic.maxForce = 200.f;
+
+	auto& steering = registry.AddComponent<ECS::Steering>(agent);
+	steering.currentBehavior = ECS::SteeringBehaviorType::Seek; // Inicia buscando
+	steering.target = sf::Vector2f{ 600.f, 400.f };             // Va hacia este punto
+	// -------------------------------------------
+
 	ECS::EntityID cam = registry.CreateEntity();
 	registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 400.f, 300.f });
 	auto& camComp = registry.AddComponent<ECS::Camera>(cam);
 	camComp.followTarget = circle; // la cámara sigue a su objetivo
 	camComp.followSpeed = 5.f; // sube para que se pegue más rápido
 	camComp.zoom = 1;
+
 	// Forzamos a la ventana a inicializar su View interna con su propio tamaño actual
 	g_window.handleResize(g_window.m_window->getSize());
 
@@ -76,7 +100,7 @@ int main() {
 		// Limpia la ventana
 		g_window.clear(sf::Color::Black);
 
-		// Esto ejecutará RenderSystem::OnUpdate y luego UISystem::OnUpdate
+		// Esto ejecutará SteeringSystem, luego CameraSystem, luego RenderSystem y al final UISystem
 		registry.UpdateSystems(dt);
 
 		// Presentar el frame

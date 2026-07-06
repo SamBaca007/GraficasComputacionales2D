@@ -5,7 +5,9 @@
 #include "ECS/Components/Transform.h"
 #include "ECS/Components/Render.h"
 #include "ECS/Components/Camera.h"
-#include <imgui.h> 
+#include "ECS/Components/Kinematic.h"
+#include "ECS/Components/Steering.h"
+#include <imgui.h>
 
 namespace ECS {
   class UISystem final : public System {
@@ -105,7 +107,9 @@ namespace ECS {
           ImGui::Text("%s", title.c_str());
           ImGui::Separator();
 
+          // ==========================================
           // Transform Component
+          // ==========================================
           if (registry.HasComponent<ECS::Transform>(selectedEntity)) {
             if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
               auto& transform = registry.GetComponent<ECS::Transform>(selectedEntity);
@@ -125,8 +129,9 @@ namespace ECS {
               }
             }
           }
-
+          // ==========================================
           // Render Component
+          // ==========================================
           if (registry.HasComponent<ECS::Render>(selectedEntity)) {
             if (ImGui::CollapsingHeader("Render", ImGuiTreeNodeFlags_DefaultOpen)) {
               auto& render = registry.GetComponent<ECS::Render>(selectedEntity);
@@ -152,8 +157,9 @@ namespace ECS {
               }
             }
           }
-
+          // ==========================================
           // Camera Component
+          // ==========================================
           if (registry.HasComponent<ECS::Camera>(selectedEntity)) {
             if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
               auto& cam = registry.GetComponent<ECS::Camera>(selectedEntity);
@@ -170,6 +176,72 @@ namespace ECS {
               }
             }
           }
+          // ==========================================
+          // Kinematic Component
+          // ==========================================
+          if (registry.HasComponent<ECS::Kinematic>(selectedEntity)) {
+            if (ImGui::CollapsingHeader("Kinematic", ImGuiTreeNodeFlags_DefaultOpen)) {
+              auto& kinematic = registry.GetComponent<ECS::Kinematic>(selectedEntity);
+
+              // Muestra la velocidad actual (sirve mucho para depurar visualmente)
+              float vel[2] = { kinematic.velocity.x, kinematic.velocity.y };
+              if (ImGui::DragFloat2("Velocity", vel, 1.f)) {
+                kinematic.velocity.x = vel[0];
+                kinematic.velocity.y = vel[1];
+              }
+
+              // Muestra la aceleración
+              float acc[2] = { kinematic.acceleration.x, kinematic.acceleration.y };
+              if (ImGui::DragFloat2("Acceleration", acc, 1.f)) {
+                kinematic.acceleration.x = acc[0];
+                kinematic.acceleration.y = acc[1];
+              }
+
+              // Límites físicos ajustables
+              ImGui::DragFloat("Max Speed", &kinematic.maxSpeed, 1.f, 0.f, 1000.f);
+              ImGui::DragFloat("Max Force", &kinematic.maxForce, 1.f, 0.f, 1000.f);
+            }
+          }
+
+          // ==========================================
+          // Steering Component
+          // ==========================================
+          if (registry.HasComponent<ECS::Steering>(selectedEntity)) {
+            if (ImGui::CollapsingHeader("Steering", ImGuiTreeNodeFlags_DefaultOpen)) {
+              auto& steering = registry.GetComponent<ECS::Steering>(selectedEntity);
+
+              // 1. Selector de Comportamiento (ComboBox)
+              const char* behaviorNames[] = { "None", "Seek", "Flee", "Arrive" };
+              int currentBehavior = static_cast<int>(steering.currentBehavior);
+              if (ImGui::Combo("Behavior", &currentBehavior, behaviorNames, IM_ARRAYSIZE(behaviorNames))) {
+                // Actualizamos el enum de la entidad
+                steering.currentBehavior = static_cast<ECS::SteeringBehaviorType>(currentBehavior);
+              }
+
+              // 2. Coordenadas del Objetivo Estático
+              float targetPos[2] = { steering.target.x, steering.target.y };
+              if (ImGui::DragFloat2("Target Pos", targetPos, 1.f)) {
+                steering.target.x = targetPos[0];
+                steering.target.y = targetPos[1];
+              }
+
+              // 3. Entity ID del Objetivo Dinámico
+              // Convertimos tu uint64_t a un int para que sea fácil escribir un ID manualmente
+              int targetId = static_cast<int>(steering.targetEntity == ECS::NULL_ENTITY ? -1 : steering.targetEntity);
+              if (ImGui::InputInt("Target Entity", &targetId)) {
+                // Si el usuario escribe algo menor a 0 (ej. -1), lo tomamos como nulo
+                steering.targetEntity = (targetId < 0) ? ECS::NULL_ENTITY : static_cast<ECS::EntityID>(targetId);
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Asigna el ID de otra entidad para seguirla. Usa -1 para ignorarlo.");
+              }
+
+              // 4. Propiedades exclusivas de ciertos comportamientos
+              if (steering.currentBehavior == ECS::SteeringBehaviorType::Arrive) {
+                ImGui::DragFloat("Slowing Radius", &steering.slowingRadius, 1.f, 0.f, 1000.f);
+              }
+            }
+          }
         }
         else {
           ImGui::TextDisabled("Selecciona una entidad en el outliner.");
@@ -177,6 +249,8 @@ namespace ECS {
       }
       ImGui::End();
     }
+
+
 
   private:
     ECS::EntityID selectedEntity = ECS::NULL_ENTITY;
@@ -186,4 +260,4 @@ namespace ECS {
     // la función OnUpdate podrá leerla y modificarla sin problemas de definición.
     bool m_styleApplied = false;
   };
-}
+} // Namespace ECS

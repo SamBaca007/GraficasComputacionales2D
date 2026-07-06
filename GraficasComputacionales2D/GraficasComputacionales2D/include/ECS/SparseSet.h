@@ -77,4 +77,4 @@ namespace ECS {
 		std::vector<EntityIndex> m_sparse;   // sparse[entityIndex] -> dense index
 		std::vector<EntityID>    m_dense;    // dense[i] -> EntityID
 	};
-}
+} // Namespace ECS

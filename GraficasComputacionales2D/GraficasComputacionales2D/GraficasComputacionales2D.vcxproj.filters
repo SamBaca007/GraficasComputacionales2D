@@ -107,5 +107,14 @@
     <ClInclude Include="include\ECS\Components\Camera.h">
       <Filter>Archivos de encabezado\ECS\Components</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Components\Kinematic.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Components\Steering.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Systems\SteeringSystem.h">
+      <Filter>Archivos de encabezado\ECS\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
