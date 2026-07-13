@@ -7,107 +7,132 @@
 #include "ECS/Systems/CameraSystem.h"
 #include "ECS/Systems/RenderSystem.h"
 #include "ECS/Systems/UISystem.h"
-#include "ECS/Systems/SteeringSystem.h" // Ya lo tenías incluido, ¡perfecto!
+#include "ECS/Systems/SteeringSystem.h" 
+#include "ECS/Components/Wander.h"
+#include "ECS/Components/Pursuit.h"
+#include "ECS/Components/ObstacleAvoidance.h"
+#include "ECS/Components/Obstacle.h"
+#include "ECS/Systems/WanderSystem.h"
+#include "ECS/Systems/PursuitSystem.h"
+#include "ECS/Systems/ObstacleAvoidanceSystem.h"
+#include "ECS/Systems/KinematicSystem.h"
 
 Window g_window(Window(800, 600, "Surreal Engine 2D"));
 ECS::Registry registry;
 
 void destroy()
 {
-	ImGui::SFML::Shutdown();
+  ImGui::SFML::Shutdown();
 }
 
 int main() {
-	// ==========================================
-	// REGISTRO DE SISTEMAS
-	// El orden importa: Primero calculamos IA/Física, luego Cámara, luego Render y al final la UI
-	// ==========================================
-	registry.AddSystem<ECS::SteeringSystem>(); // <-- NUEVO: Sistema de Steering agregado aquí
-	registry.AddSystem<ECS::CameraSystem>(g_window);
-	registry.AddSystem<ECS::RenderSystem>(g_window);
-	registry.AddSystem<ECS::UISystem>();
+  // ==========================================
+  // REGISTRO DE SISTEMAS
+  // ==========================================
+  registry.AddSystem<ECS::SteeringSystem>();
 
-	if (!ImGui::SFML::Init(*g_window.m_window)) {
-		return -1;
-	}
+  // Registramos nuestros 3 nuevos sistemas de IA antes del Render y la UI
+  registry.AddSystem<ECS::WanderSystem>();
+  registry.AddSystem<ECS::PursuitSystem>();
+  registry.AddSystem<ECS::ObstacleAvoidanceSystem>();
 
-	ImGuiIO& io = ImGui::GetIO();
-	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+  // ---> NUEVO: El sistema que calcula la física y mueve las entidades <---
+  registry.AddSystem<KinematicSystem>();
 
-	sf::Clock deltaClock;
-	bool showDemoWindow = true;
+  registry.AddSystem<ECS::CameraSystem>(g_window);
+  registry.AddSystem<ECS::RenderSystem>(g_window);
+  registry.AddSystem<ECS::UISystem>();
 
-	// ==========================================
-	// CREACIÓN DE ENTIDADES
-	// ==========================================
-	ECS::EntityID circle = registry.CreateEntity();
-	registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 400.f, 300.f });
-	registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE,
-		sf::Color(100, 250, 50), "Textures/Bricks.png"));
+  if (!ImGui::SFML::Init(*g_window.m_window)) {
+    return -1;
+  }
 
-	ECS::EntityID tri = registry.CreateEntity();
-	registry.AddComponent<ECS::Transform>(tri, sf::Vector2f{ 200.f, 200.f }, 45.f);
-	registry.AddComponent<ECS::Render>(tri, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-	// ---> NUEVO: Nuestro Agente Inteligente <---
-	ECS::EntityID agent = registry.CreateEntity();
-	registry.AddComponent<ECS::Transform>(agent, sf::Vector2f{ 100.f, 100.f });
-	registry.AddComponent<ECS::Render>(agent, ECS::Render::Make(TRIANGLE, sf::Color::Green));
+  sf::Clock deltaClock;
+  bool showDemoWindow = true;
 
-	auto& kinematic = registry.AddComponent<ECS::Kinematic>(agent);
-	kinematic.maxSpeed = 250.f;
-	kinematic.maxForce = 200.f;
+  // ==========================================
+  // CREACIÓN DE ENTIDADES
+  // ==========================================
 
-	auto& steering = registry.AddComponent<ECS::Steering>(agent);
-	steering.currentBehavior = ECS::SteeringBehaviorType::Seek; // Inicia buscando
-	steering.target = sf::Vector2f{ 600.f, 400.f };             // Va hacia este punto
-	// -------------------------------------------
+  // 1. TU CÍRCULO CLÁSICO (Ahora es un Obstáculo)
+  ECS::EntityID circle = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 100.f, 50.f });
+  registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE,
+    sf::Color(100, 250, 50), "Textures/Bricks.png"));
+  registry.AddComponent<ECS::Obstacle>(circle, ECS::Obstacle{ 40.0f });
 
-	ECS::EntityID cam = registry.CreateEntity();
-	registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 400.f, 300.f });
-	auto& camComp = registry.AddComponent<ECS::Camera>(cam);
-	camComp.followTarget = circle; // la cámara sigue a su objetivo
-	camComp.followSpeed = 5.f; // sube para que se pegue más rápido
-	camComp.zoom = 1;
+  // 2. TU TRIÁNGULO VERDE (Seeker Original + Evasor de Obstáculos)
+  ECS::EntityID agent = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(agent, sf::Vector2f{ 100.f, 100.f });
+  registry.AddComponent<ECS::Render>(agent, ECS::Render::Make(TRIANGLE, sf::Color::Green));
 
-	// Forzamos a la ventana a inicializar su View interna con su propio tamaño actual
-	g_window.handleResize(g_window.m_window->getSize());
+  auto& kinematic = registry.AddComponent<ECS::Kinematic>(agent);
+  kinematic.maxSpeed = 250.f;
+  kinematic.maxForce = 200.f;
 
-	while (g_window.isOpen()) {
+  auto& steering = registry.AddComponent<ECS::Steering>(agent);
+  steering.currentBehavior = ECS::SteeringBehaviorType::Seek;
+  steering.target = sf::Vector2f{ 600.f, 400.f };
+  // Le enseñamos a esquivar el círculo de ladrillos
+  registry.AddComponent<ECS::ObstacleAvoidance>(agent);
 
-		while (const std::optional event = g_window.m_window->pollEvent()) {
-			// ImGui debe recibir todos los eventos de SFML
-			ImGui::SFML::ProcessEvent(*g_window.m_window, *event);
-			if (event->is<sf::Event::Closed>()) {
-				g_window.close();
-			}
-			// Resize event: Actualiza la vista al nuevo tamaño de la ventana
-			else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
-				g_window.handleResize(resized->size);
-			}
-		}
+  // 3. TU TRIÁNGULO CELESTE (Ahora es el Cazador)
+  ECS::EntityID tri = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(tri, sf::Vector2f{ 200.f, 200.f }, 45.f);
+  registry.AddComponent<ECS::Render>(tri, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
 
-		const sf::Time elapsedTime = deltaClock.restart();
-		const float dt = elapsedTime.asSeconds();
+  auto& kinTri = registry.AddComponent<ECS::Kinematic>(tri);
+  kinTri.maxSpeed = 160.f;
+  kinTri.maxForce = 120.f;
 
-		// Inicia el frame de ImGui.
-		ImGui::SFML::Update(*g_window.m_window, elapsedTime);
+  auto& pursuit = registry.AddComponent<ECS::Pursuit>(tri);
+  pursuit.targetEntity = agent; // Persigue al triángulo verde
+  registry.AddComponent<ECS::ObstacleAvoidance>(tri);
 
-		ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
-		ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), dockspaceFlags);
-		ImGui::ShowDemoWindow(&showDemoWindow);
+  // ==========================================
+  // CÁMARA
+  // ==========================================
+  ECS::EntityID cam = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 0.f, 0.f });
+  auto& camComp = registry.AddComponent<ECS::Camera>(cam);
+  camComp.followTarget = ECS::NULL_ENTITY;
+  camComp.followSpeed = 5.f;
+  camComp.zoom = 1;
 
-		// Limpia la ventana
-		g_window.clear(sf::Color::Black);
+  g_window.handleResize(g_window.m_window->getSize());
 
-		// Esto ejecutará SteeringSystem, luego CameraSystem, luego RenderSystem y al final UISystem
-		registry.UpdateSystems(dt);
+  while (g_window.isOpen()) {
 
-		// Presentar el frame
-		ImGui::SFML::Render(*g_window.m_window);
-		g_window.display();
-	}
-	destroy();
+    while (const std::optional event = g_window.m_window->pollEvent()) {
+      ImGui::SFML::ProcessEvent(*g_window.m_window, *event);
+      if (event->is<sf::Event::Closed>()) {
+        g_window.close();
+      }
+      else if (const auto* resized = event->getIf<sf::Event::Resized>()) {
+        g_window.handleResize(resized->size);
+      }
+    }
 
-	return 0;
+    const sf::Time elapsedTime = deltaClock.restart();
+    const float dt = elapsedTime.asSeconds();
+
+    ImGui::SFML::Update(*g_window.m_window, elapsedTime);
+
+    ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
+    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), dockspaceFlags);
+    ImGui::ShowDemoWindow(&showDemoWindow);
+
+    g_window.clear(sf::Color::Black);
+
+    registry.UpdateSystems(dt);
+
+    ImGui::SFML::Render(*g_window.m_window);
+    g_window.display();
+  }
+  destroy();
+
+  return 0;
 }

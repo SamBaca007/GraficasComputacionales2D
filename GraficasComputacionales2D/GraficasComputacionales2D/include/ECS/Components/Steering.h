@@ -10,7 +10,10 @@ namespace ECS {
     None,
     Seek,
     Flee,
-    Arrive
+    Arrive,
+    Wander,
+    Pursuit,
+    ObstacleAvoidance
   };
 
   struct Steering {
