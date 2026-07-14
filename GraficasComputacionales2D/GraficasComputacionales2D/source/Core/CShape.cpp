@@ -1,9 +1,24 @@
+/**
+ * @file CShape.cpp
+ * @brief Implementación de la clase CShape.
+ *        Contiene la lógica de inicialización y renderizado para las distintas
+ *        formas geométricas construidas sobre SFML.
+ */
+
 #include "Core/CShape.h"
 #include "Core/Window.h"
 
+ /**
+	* @brief Constructor parametrizado.
+	*        Inicializa el tipo de forma y llama al método de fábrica para instanciarla.
+	*/
 CShape::CShape(ShapeType shapeType) : m_shapeType(shapeType), m_shape(createShape(shapeType)) {
 }
 
+/**
+ * @brief Dibuja la figura instanciada en la ventana proporcionada.
+ *        Solo intenta dibujar si el puntero inteligente contiene una forma válida.
+ */
 void
 CShape::draw(Window& window) {
 	if (m_shape) {
@@ -11,11 +26,26 @@ CShape::draw(Window& window) {
 	}
 }
 
+/**
+ * @brief Obtiene el puntero crudo a la figura subyacente de SFML.
+ */
 sf::Shape* CShape::getShape()
 {
 	return m_shape.get();
 }
 
+/**
+ * @brief Crea y configura la figura geométrica de SFML correspondiente al tipo solicitado.
+ *
+ * @details Dependiendo del enum ShapeType, instancia la figura con propiedades
+ *          predeterminadas de tamaño, color blanco y una posición inicial predefinida.
+ *          - CIRCLE: Círculo de radio 50 en (100, 100).
+ *          - RECTANGLE: Rectángulo de 100x50 en (200, 200).
+ *          - TRIANGLE: Polígono convexo de 3 lados en (300, 300).
+ *          - POLYGON: Polígono irregular de 5 lados en (400, 400).
+ *          - LINE: Rectángulo muy delgado (200x1) en (500, 500) para simular una línea.
+ *          - EMPTY: Retorna un puntero nulo.
+ */
 std::unique_ptr<sf::Shape>
 CShape::createShape(ShapeType shapeType) {
 

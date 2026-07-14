@@ -1,46 +1,61 @@
+/**
+ * @file Types.h
+ * @brief Tipos fundamentales del Entity Component System (ECS).
+ *
+ * @details Define la estructura de los identificadores del ECS.
+ *          EntityID es un uint64_t que empaqueta:
+ *          - bits [0..31]  -> EntityIndex (posición en el array)
+ *          - bits [32..63] -> EntityVersion (generación; invalida IDs viejos)
+ *
+ *          Al destruir una entidad, su versión sube en 1, así cualquier
+ *          EntityID antiguo guardado en otro sitio queda inválido automáticamente.
+ */
+
 #pragma once
 #include "Prerequisites.h"
-// ============================================================
-//  ECS :: Types.h
-//  Tipos fundamentales del Entity Component System.
-//
-//  EntityID  = uint64_t que empaqueta:
-//              bits [0..31]  -> EntityIndex  (posición en el array)
-//              bits [32..63] -> EntityVersion (generación; invalida IDs viejos)
-//
-//  Al destruir una entidad su version sube 1, así cualquier
-//  EntityID antiguo guardado en otro sitio queda inválido.
-// ============================================================
 
+ /**
+	* @namespace ECS
+	* @brief Espacio de nombres que agrupa las clases, estructuras y tipos del Entity Component System.
+	*/
 namespace ECS {
 	// Tipos primitivos
-	using EntityIndex = uint32_t;  // Índice de la entidad en el array
-	using EntityVersion = uint32_t; // Versión de la entidad (para invalidar IDs antiguos)
-	using EntityID = uint64_t;      // ID completo que empaqueta índice y versión
-	using ComponentTypeID = uint32_t; // ID de tipo para componentes
 
-	// Valor centinela para "ninguna entidad"
+	/** @brief Índice de la entidad en el array interno (32 bits). */
+	using EntityIndex = uint32_t;
+
+	/** @brief Versión de la entidad, utilizada para invalidar IDs antiguos (32 bits). */
+	using EntityVersion = uint32_t;
+
+	/** @brief Identificador completo que empaqueta el índice y la versión (64 bits). */
+	using EntityID = uint64_t;
+
+	/** @brief Identificador de tipo único para los componentes. */
+	using ComponentTypeID = uint32_t;
+
+	/** @brief Valor centinela utilizado para representar "ninguna entidad" o un ID inválido. */
 	inline constexpr EntityID NULL_ENTITY = std::numeric_limits<EntityID>::max();
 
 	// Empaquetado / desempaquetado de EntityID
+
 	/**
-   * @brief Extrae el índice de entidad almacenado dentro de un EntityID.
-   *
-   * Esta función obtiene los 32 bits inferiores de un identificador de entidad.
-   * En este sistema, el EntityID está compuesto por dos partes:
-   *
-   * - Bits 0  - 31: índice de la entidad.
-   * - Bits 32 - 63: versión de la entidad.
-   *
-   * El índice normalmente se utiliza para acceder a la posición de la entidad
-   * dentro de un arreglo, pool, sparse set o estructura interna del ECS.
-   *
-   * @param id Identificador completo de la entidad.
-   *
-   * @return EntityIndex Índice de la entidad contenido en los 32 bits inferiores.
-   *
-   * @note La función no modifica ningún estado interno.
-   * @note Se marca como noexcept porque no lanza excepciones.
+	 * @brief Extrae el índice de entidad almacenado dentro de un EntityID.
+	 *
+	 * Esta función obtiene los 32 bits inferiores de un identificador de entidad.
+	 * En este sistema, el EntityID está compuesto por dos partes:
+	 *
+	 * - Bits 0  - 31: índice de la entidad.
+	 * - Bits 32 - 63: versión de la entidad.
+	 *
+	 * El índice normalmente se utiliza para acceder a la posición de la entidad
+	 * dentro de un arreglo, pool, sparse set o estructura interna del ECS.
+	 *
+	 * @param id Identificador completo de la entidad.
+	 *
+	 * @return EntityIndex Índice de la entidad contenido en los 32 bits inferiores.
+	 *
+	 * @note La función no modifica ningún estado interno.
+	 * @note Se marca como noexcept porque no lanza excepciones.
 	 * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el resultado.
 	 */
 	[[nodiscard]] inline EntityIndex GetEntityIndex(EntityID id) noexcept
@@ -106,25 +121,26 @@ namespace ECS {
 	// Generador de IDs de tipo de componente
 	// Cada tipo T obtiene un ID único en tiempo de ejecución
 	// la primera vez que se llama a GetComponentTypeID<T>().
+
 	/**
-   * @brief Genera el siguiente identificador único para un tipo de componente.
-   *
-   * Esta función mantiene un contador estático interno que se incrementa cada vez
-   * que se solicita un nuevo ComponentTypeID. Su propósito es asignar un ID único
-   * a cada tipo de componente registrado dentro del sistema ECS.
-   *
-   * El primer componente registrado recibirá el ID 0, el siguiente el ID 1,
-   * después el ID 2, y así sucesivamente.
-   *
-   * @return ComponentTypeID Nuevo identificador único para un tipo de componente.
-   *
-   * @note El contador es estático, por lo que conserva su valor entre llamadas.
-   * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el ID generado.
-   * @note Se marca como noexcept porque no lanza excepciones.
-   *
-   * @warning El orden de los IDs depende del orden en que se soliciten por primera vez.
-   * @warning Esta versión no es segura para inicialización concurrente desde múltiples hilos.
-   */
+	 * @brief Genera el siguiente identificador único para un tipo de componente.
+	 *
+	 * Esta función mantiene un contador estático interno que se incrementa cada vez
+	 * que se solicita un nuevo ComponentTypeID. Su propósito es asignar un ID único
+	 * a cada tipo de componente registrado dentro del sistema ECS.
+	 *
+	 * El primer componente registrado recibirá el ID 0, el siguiente el ID 1,
+	 * después el ID 2, y así sucesivamente.
+	 *
+	 * @return ComponentTypeID Nuevo identificador único para un tipo de componente.
+	 *
+	 * @note El contador es estático, por lo que conserva su valor entre llamadas.
+	 * @note Se marca como [[nodiscard]] para evitar ignorar accidentalmente el ID generado.
+	 * @note Se marca como noexcept porque no lanza excepciones.
+	 *
+	 * @warning El orden de los IDs depende del orden en que se soliciten por primera vez.
+	 * @warning Esta versión no es segura para inicialización concurrente desde múltiples hilos.
+	 */
 	[[nodiscard]] inline ComponentTypeID NextComponentTypeID() noexcept
 	{
 		static ComponentTypeID counter = 0;

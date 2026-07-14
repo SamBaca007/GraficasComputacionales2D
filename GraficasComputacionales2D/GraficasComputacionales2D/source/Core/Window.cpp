@@ -1,5 +1,17 @@
+/**
+ * @file Window.cpp
+ * @brief Implementación de la clase Window.
+ *        Contiene la lógica interna para la inicialización, dibujado y gestión
+ *        de la ventana de renderizado de SFML.
+ */
+
 #include "Core/Window.h"
 
+ /**
+	* @brief Constructor parametrizado.
+	*        Crea la ventana de SFML con las dimensiones y título dados, y establece
+	*        el límite de fotogramas por segundo a 60.
+	*/
 Window::Window(int width, int height, const std::string& title) {
 
 	m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode({ static_cast<unsigned int>
@@ -13,6 +25,9 @@ Window::Window(int width, int height, const std::string& title) {
 	}
 }
 
+/**
+ * @brief Verifica el estado de la ventana.
+ */
 bool
 Window::isOpen() const {
 	// Check that window is not null
@@ -25,6 +40,9 @@ Window::isOpen() const {
 	}
 }
 
+/**
+ * @brief Limpia la ventana con el color especificado.
+ */
 void
 Window::clear(const sf::Color& color) {
 	if (m_window) {
@@ -35,6 +53,9 @@ Window::clear(const sf::Color& color) {
 	}
 }
 
+/**
+ * @brief Dibuja un objeto en la ventana actual.
+ */
 void
 Window::draw(const sf::Drawable& drawable, const sf::RenderStates& states) {
 	if (m_window) {
@@ -45,6 +66,9 @@ Window::draw(const sf::Drawable& drawable, const sf::RenderStates& states) {
 	}
 }
 
+/**
+ * @brief Muestra el búfer dibujado en la pantalla.
+ */
 void
 Window::display() {
 	if (m_window) {
@@ -55,6 +79,9 @@ Window::display() {
 	}
 }
 
+/**
+ * @brief Cierra el proceso de la ventana.
+ */
 void
 Window::close()
 {
@@ -66,6 +93,13 @@ Window::close()
 	}
 }
 
+/**
+ * @brief Maneja el evento de redimensionamiento de la ventana.
+ *
+ * @details Configura una vista 1:1 con el tamaño de la ventana (sin estiramiento).
+ *          El centro de la vista queda en (0,0), de modo que el origen del mundo
+ *          se sitúa en el CENTRO de la pantalla.
+ */
 void Window::handleResize(const sf::Vector2u& size) {
 	if (!m_window) {
 		ERROR("Window", "handleResize", "Window is null");
@@ -82,6 +116,13 @@ void Window::handleResize(const sf::Vector2u& size) {
 	m_window->setView(m_view);
 }
 
+/**
+ * @brief Aplica una transformación de cámara a la vista actual.
+ *
+ * @details El tamaño visible se calcula dividiendo el tamaño base entre el zoom
+ *          (un mayor zoom implica menos mundo visible). Se previene automáticamente
+ *          la división por cero y las vistas invertidas.
+ */
 void
 Window::applyCameraView(const sf::Vector2f& center, float zoom, float rotationDeg) {
 	if (!m_window) {
@@ -97,16 +138,25 @@ Window::applyCameraView(const sf::Vector2f& center, float zoom, float rotationDe
 	m_window->setView(m_view);
 }
 
+/**
+ * @brief Actualiza la lógica de la ventana y los cálculos de tiempo (Delta Time).
+ */
 void
 Window::update() {
 	// Almacena el deltaTime una sola vez
 	deltaTime = clock.restart();
 }
 
+/**
+ * @brief Ejecuta el ciclo de renderizado.
+ */
 void
 Window::render() {
 }
 
+/**
+ * @brief Destruye explícitamente la instancia de la ventana.
+ */
 void
 Window::destroy() {
 	m_window.reset();

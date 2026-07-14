@@ -1,3 +1,14 @@
+/**
+ * @file WanderSystem.h
+ * @brief Sistema encargado de procesar y aplicar el comportamiento de deambulación (Wander).
+ *
+ * @details Este sistema evalúa todas las entidades que posean los componentes Transform,
+ * Kinematic y Wander. Utiliza el algoritmo del círculo de Craig Reynolds para simular
+ * una patrulla o movimiento errático natural, proyectando un círculo imaginario frente
+ * a la entidad y variando un ángulo aleatoriamente en cada frame para calcular la
+ * fuerza direccional resultante, la cual se acumula en la aceleración del componente Kinematic.
+ */
+
 #pragma once
 #include "ECS/System.h"
 #include "ECS/Registry.h"
@@ -7,9 +18,27 @@
 #include <cmath>
 #include <cstdlib>
 
+ /**
+  * @namespace ECS
+  * @brief Espacio de nombres que agrupa las clases y estructuras del Entity Component System.
+  */
 namespace ECS {
+
+  /**
+   * @class WanderSystem
+   * @brief Sistema de IA que calcula la fuerza de deambulación errática y fluida para las entidades.
+   */
   class WanderSystem final : public System {
   public:
+    /**
+     * @brief Actualiza el sistema calculando y aplicando la fuerza de deambulación para cada entidad compatible.
+     * @details Por cada iteración, modifica el ángulo actual mediante un valor aleatorio escalado
+     * por el `maxJitter`. Luego, calcula la posición del centro del círculo imaginario en base a la
+     * dirección actual y suma el vector de desplazamiento en el borde del círculo (`circleRadius`).
+     * Finalmente, acumula la fuerza obtenida en la aceleración del componente Kinematic.
+     * * @param registry Referencia al registro principal del ECS que contiene las entidades y sus componentes.
+     * @param dt Tiempo transcurrido desde el último frame (en segundos).
+     */
     void OnUpdate(Registry& registry, float dt) override {
       registry.GetView<Transform, Kinematic, Wander>().Each(
         [&](EntityID entity, Transform& transform, Kinematic& kinematic, Wander& wander) {

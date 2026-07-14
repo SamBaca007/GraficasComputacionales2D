@@ -1,3 +1,13 @@
+/**
+ * @file UISystem.h
+ * @brief Definición de la clase UISystem.
+ *
+ * @details Este sistema se encarga de renderizar la interfaz de usuario (UI)
+ *          para la depuración y edición de entidades en tiempo real utilizando ImGui.
+ *          Actúa como un editor integrado proporcionando paneles de jerarquía (Outliner)
+ *          y de propiedades (Inspector).
+ */
+
 #pragma once
 #include "Prerequisites.h"
 #include "ECS/System.h"
@@ -12,11 +22,35 @@
 #include "ECS/Components/ObstacleAvoidance.h"
 #include <imgui.h>
 
+ /**
+  * @namespace ECS
+  * @brief Espacio de nombres que agrupa las clases y estructuras del Entity Component System.
+  */
 namespace ECS {
+
+  /**
+   * @class UISystem
+   * @brief Sistema encargado de manejar la interfaz gráfica de usuario (GUI) del motor.
+   *
+   * @details Renderiza paneles interactivos que permiten visualizar todas las entidades
+   *          activas, seleccionar una específica y modificar sus componentes en tiempo real.
+   */
   class UISystem final : public System {
   public:
+    /**
+     * @brief Constructor por defecto del sistema de UI.
+     */
     UISystem() = default;
 
+    /**
+     * @brief Lógica principal del sistema ejecutada frame a frame.
+     *
+     * @details Aplica el estilo visual en el primer frame válido de ImGui y luego
+     *          manda a dibujar los paneles principales (Outliner e Inspector).
+     *
+     * @param registry Referencia al registro principal del ECS.
+     * @param deltaTime Tiempo transcurrido desde el último frame (no utilizado directamente aquí).
+     */
     void OnUpdate(Registry& registry, float deltaTime) override {
       // Al primer frame, cuando ImGui ya tiene un contexto válido, aplicamos el estilo
       if (!m_styleApplied) {
@@ -28,6 +62,12 @@ namespace ECS {
       DrawDetails(registry);
     }
 
+    /**
+     * @brief Aplica un tema visual personalizado para ImGui.
+     *
+     * @details Configura los colores, espaciados y redondeo de los elementos de ImGui
+     *          para asemejarse al esquema de colores oscuros ("Unity Blue").
+     */
     static void ApplyUnityBlueStyle() {
       ImGuiStyle& style = ImGui::GetStyle();
 
@@ -69,6 +109,15 @@ namespace ECS {
       colors[ImGuiCol_SeparatorActive] = ImVec4(0.40f, 0.75f, 1.00f, 1.00f);
     }
 
+    /**
+     * @brief Dibuja el panel "Outliner" que lista las entidades actuales.
+     *
+     * @details Muestra una ventana con todas las entidades que poseen al menos un
+     *          componente Transform. Permite al usuario hacer clic en una entidad
+     *          para seleccionarla y ver sus detalles en el Inspector.
+     *
+     * @param registry Referencia al registro principal del ECS.
+     */
     void DrawOutliner(Registry& registry) {
       ImGui::Begin("Entities");
       {
@@ -85,6 +134,16 @@ namespace ECS {
       ImGui::End();
     }
 
+    /**
+     * @brief Dibuja el panel "Inspector" para visualizar y editar los componentes de la entidad seleccionada.
+     *
+     * @details Dependiendo de los componentes que posea la entidad seleccionada,
+     *          muestra controles específicos (sliders, checkboxes, color pickers) para
+     *          modificar sus valores. También incluye botones para añadir nuevos
+     *          componentes o remover los existentes (excepto Transform y Render).
+     *
+     * @param registry Referencia al registro principal del ECS.
+     */
     void DrawDetails(Registry& registry) {
       ImGui::Begin("Inspector");
       {
@@ -301,15 +360,15 @@ namespace ECS {
 
                 registry.GetView<ECS::Transform>().Each([&pursuit, this](ECS::EntityID id,
                   ECS::Transform&) {
-                  if (id == selectedEntity) return;
+                    if (id == selectedEntity) return;
 
-                  std::string entityLabel = "Entity " + std::to_string(id);
-                  bool isSelected = (pursuit.targetEntity == id);
+                    std::string entityLabel = "Entity " + std::to_string(id);
+                    bool isSelected = (pursuit.targetEntity == id);
 
-                  if (ImGui::Selectable(entityLabel.c_str(), isSelected)) {
-                    pursuit.targetEntity = id;
-                  }
-                  if (isSelected) ImGui::SetItemDefaultFocus();
+                    if (ImGui::Selectable(entityLabel.c_str(), isSelected)) {
+                      pursuit.targetEntity = id;
+                    }
+                    if (isSelected) ImGui::SetItemDefaultFocus();
                   });
                 ImGui::EndCombo();
               }
@@ -407,7 +466,10 @@ namespace ECS {
     }
 
   private:
+    /** @brief ID de la entidad actualmente seleccionada en el Outliner. */
     ECS::EntityID selectedEntity = ECS::NULL_ENTITY;
+
+    /** @brief Bandera para asegurar que el tema visual de ImGui solo se asigne una vez. */
     bool m_styleApplied = false;
   };
 } // Namespace ECS
