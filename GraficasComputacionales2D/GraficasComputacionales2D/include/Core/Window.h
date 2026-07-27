@@ -115,6 +115,17 @@ public:
 	/** @brief Puntero inteligente a la ventana de renderizado de SFML. */
 	std::unique_ptr<sf::RenderWindow> m_window = nullptr;
 
+	/**
+		 * @brief Cambia el nivel de Anti-Aliasing y recrea la ventana.
+		 * @param level Nivel de MSAA (0, 2, 4, 8).
+		 */
+	void setAntialiasingLevel(unsigned int level);
+
+	/**
+	 * @brief Obtiene el nivel actual de Anti-Aliasing.
+	 */
+	unsigned int getAntialiasingLevel() const;
+
 private:
 	/** @brief Vista (cámara) actual aplicada a la ventana. */
 	sf::View m_view;
@@ -127,4 +138,11 @@ private:
 
 	/** @brief Reloj de SFML utilizado para calcular el tiempo entre frames. */
 	sf::Clock clock;
+
+	private:
+		// Guárdalos para poder recrear la ventana después
+		unsigned int m_width = 800;
+		unsigned int m_height = 600;
+		std::string m_title = "";
+		unsigned int m_msaaLevel = 0;
 };

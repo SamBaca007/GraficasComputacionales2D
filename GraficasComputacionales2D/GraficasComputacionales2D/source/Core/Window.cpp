@@ -6,25 +6,36 @@
  */
 
 #include "Core/Window.h"
+#include <windows.h>
 
  /**
 	* @brief Constructor parametrizado.
 	*        Crea la ventana de SFML con las dimensiones y título dados, y establece
 	*        el límite de fotogramas por segundo a 60.
 	*/
-Window::Window(int width, int height, const std::string& title) {
+Window::Window(int width, int height, const std::string& title)
+	: m_width(width), m_height(height), m_title(title), m_msaaLevel(0)
+{
+	sf::ContextSettings settings;
+	settings.antiAliasingLevel = m_msaaLevel;
 
-	m_window = std::make_unique<sf::RenderWindow>(sf::VideoMode({ static_cast<unsigned int>
-		(width), static_cast<unsigned int>(height) }), title, sf::Style::Default);
+	sf::VideoMode mode(sf::Vector2u(m_width, m_height));
+	sf::String sfTitle(m_title);
+
+	m_window = std::make_unique<sf::RenderWindow>(mode, sfTitle, sf::State::Windowed, settings);
+
 	if (m_window) {
 		m_window->setFramerateLimit(60);
+
+		// Maximiza la ventana en Windows sin ocultar la barra de tareas
+		ShowWindow(m_window->getNativeHandle(), SW_MAXIMIZE);
+
 		MESSAGE("Window", "Window", "Window created successfully");
 	}
 	else {
 		ERROR("Window", "Window", "Failed to create window");
 	}
 }
-
 /**
  * @brief Verifica el estado de la ventana.
  */
@@ -160,4 +171,31 @@ Window::render() {
 void
 Window::destroy() {
 	m_window.reset();
+}
+
+void Window::setAntialiasingLevel(unsigned int level) {
+	if (m_msaaLevel == level) return;
+
+	m_msaaLevel = level;
+
+	sf::ContextSettings settings;
+	settings.antiAliasingLevel = m_msaaLevel;
+
+	sf::VideoMode mode(sf::Vector2u(m_width, m_height));
+	sf::String sfTitle(m_title);
+
+	m_window = std::make_unique<sf::RenderWindow>(mode, sfTitle, sf::State::Windowed, settings);
+
+	if (m_window) {
+		m_window->setFramerateLimit(60);
+
+		// Mantiene la ventana maximizada al reconstruirla
+		ShowWindow(m_window->getNativeHandle(), SW_MAXIMIZE);
+
+		m_window->setView(m_view);
+	}
+}
+
+unsigned int Window::getAntialiasingLevel() const {
+	return m_msaaLevel;
 }

@@ -97,6 +97,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;$(SolutionDir)/ThirdParties/SFML-3.1.0/include;$(SolutionDir)ThirdParties\imgui-docking;$(SolutionDir)ThirdParties\imgui-sfml-3.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/d1reportAllClassLayout %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,6 +118,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;$(SolutionDir)/ThirdParties/SFML-3.1.0/include;$(SolutionDir)ThirdParties\imgui-docking;$(SolutionDir)ThirdParties\imgui-sfml-3.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/d1reportAllClassLayout %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -135,6 +137,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;$(SolutionDir)/ThirdParties/SFML-3.1.0/include;$(SolutionDir)ThirdParties\imgui-docking;$(SolutionDir)ThirdParties\imgui-sfml-3.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/d1reportAllClassLayout %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,6 +158,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>./include/;$(SolutionDir)/ThirdParties/SFML-3.1.0/include;$(SolutionDir)ThirdParties\imgui-docking;$(SolutionDir)ThirdParties\imgui-sfml-3.0;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/d1reportAllClassLayout %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -183,6 +187,8 @@
     <ClInclude Include="include\ECS\Components\Kinematic.h" />
     <ClInclude Include="include\ECS\Components\Obstacle.h" />
     <ClInclude Include="include\ECS\Components\ObstacleAvoidance.h" />
+    <ClInclude Include="include\ECS\Components\Path.h" />
+    <ClInclude Include="include\ECS\Components\PathFollow.h" />
     <ClInclude Include="include\ECS\Components\Pursuit.h" />
     <ClInclude Include="include\ECS\Components\Render.h" />
     <ClInclude Include="include\ECS\Components\Steering.h" />
@@ -194,6 +200,8 @@
     <ClInclude Include="include\ECS\Systems\CameraSystem.h" />
     <ClInclude Include="include\ECS\Systems\KinematicSystem.h" />
     <ClInclude Include="include\ECS\Systems\ObstacleAvoidanceSystem.h" />
+    <ClInclude Include="include\ECS\Systems\PathFollowingSystem.h" />
+    <ClInclude Include="include\ECS\Systems\PathRenderSystem.h" />
     <ClInclude Include="include\ECS\Systems\PursuitSystem.h" />
     <ClInclude Include="include\ECS\Systems\RenderSystem.h" />
     <ClInclude Include="include\ECS\Systems\SteeringSystem.h" />

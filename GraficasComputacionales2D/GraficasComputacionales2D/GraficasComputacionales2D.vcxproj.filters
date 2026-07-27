@@ -140,5 +140,17 @@
     <ClInclude Include="include\ECS\Systems\KinematicSystem.h">
       <Filter>Archivos de encabezado\ECS\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Components\Path.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Components\PathFollow.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Systems\PathFollowingSystem.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Systems\PathRenderSystem.h">
+      <Filter>Archivos de encabezado\ECS\Systems</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
