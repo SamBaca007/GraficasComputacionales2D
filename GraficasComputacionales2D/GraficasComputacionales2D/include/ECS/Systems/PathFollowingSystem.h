@@ -65,7 +65,7 @@ namespace ECS {
 
   public:
     /**
-     * @brief Calcula la fuerza Seek para devolver al kart a la pista si proyecta salirse.
+     * @brief Calcula la fuerza Seek para seguir la pista, anticipando curvas.
      */
     static sf::Vector2f CalculateSteering(const sf::Vector2f& currentPos,
       const sf::Vector2f& velocity,
@@ -85,6 +85,9 @@ namespace ECS {
       sf::Vector2f targetDir(0.0f, 0.0f);
       float worldRecord = 999999.0f;
 
+      // NUEVO: Guardaremos en qué segmento de la pista estamos
+      size_t bestIndex = 0;
+
       // 2. Búsqueda del segmento más cercano
       for (size_t i = 0; i < path.points.size(); ++i) {
         sf::Vector2f a = path.points[i];
@@ -97,16 +100,34 @@ namespace ECS {
           worldRecord = dist;
           targetNormalPoint = normalPoint;
           targetDir = Normalize(b - a);
+          bestIndex = i; // Guardamos el índice ganador
         }
       }
 
-      // 3. Decisión y Corrección (Modificado para Carreras)
-      // SIEMPRE buscamos un punto más adelante en la pista para mantener la velocidad máxima.
+      // 3. Decisión y Corrección (Curvas Suaves)
+      // Obtenemos el vértice final de nuestro segmento actual
+      sf::Vector2f b = path.points[(bestIndex + 1) % path.points.size()];
 
-      // Apuntamos por delante en el carril (targetOffset funciona como la "distancia de visión" del piloto)
-      sf::Vector2f target = targetNormalPoint + (targetDir * follow.targetOffset);
+      // ¿Cuánta distancia hay desde nuestro punto normal hasta el final del segmento?
+      float distToEnd = Length(b - targetNormalPoint);
 
-      // Fuerza Seek constante hacia ese punto futuro
+      sf::Vector2f target;
+
+      // Si el "targetOffset" cabe en la línea actual, lo aplicamos normal
+      if (follow.targetOffset <= distToEnd) {
+        target = targetNormalPoint + (targetDir * follow.targetOffset);
+      }
+      // Si el offset se sale de la línea, "doblamos" la distancia sobrante al siguiente segmento
+      else {
+        // Vértice final del SIGUIENTE segmento
+        sf::Vector2f nextB = path.points[(bestIndex + 2) % path.points.size()];
+        sf::Vector2f nextDir = Normalize(nextB - b);
+
+        float remainingOffset = follow.targetOffset - distToEnd;
+        target = b + (nextDir * remainingOffset);
+      }
+
+      // Fuerza Seek constante hacia ese punto futuro continuo
       sf::Vector2f desiredVelocity = Normalize(target - currentPos) * maxSpeed;
       return desiredVelocity - velocity;
     }

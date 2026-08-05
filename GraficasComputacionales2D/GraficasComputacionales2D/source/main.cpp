@@ -85,81 +85,121 @@ int main() {
   // CREACIÓN DE ENTIDADES (ESCENARIO DE PRUEBA)
   // ==========================================
 
-  // 0. LA PISTA DE CARRERAS (Circuito de prueba)
+  // ==========================================
+  // 0. CIRCUITO DE LUIGI (Mario Kart DS)
+  // ==========================================
   ECS::EntityID track = registry.CreateEntity();
+
   ECS::Path trackPath;
-  trackPath.radius = 80.0f;
-  // Un circuito rectangular simple alrededor de tus entidades actuales
+  trackPath.radius = 100.0f; // Ancho de pista amplio para permitir rebasados
+
   trackPath.points = {
-      { 850.0f, 700.0f }, // 1. Línea de meta (recta derecha)
-      { 850.0f, 300.0f }, // 2. Final de la recta derecha
-      { 750.0f, 150.0f }, // 3. Curva superior derecha (entrada)
-      { 650.0f, 100.0f }, // 4. Curva superior derecha (salida)
-      { 250.0f, 100.0f }, // 5. Final recta superior
-      { 150.0f, 150.0f }, // 6. Curva superior izquierda (entrada)
-      { 100.0f, 250.0f }, // 7. Curva superior izquierda (salida)
-      { 100.0f, 650.0f }, // 8. Final recta izquierda
-      { 150.0f, 750.0f }, // 9. Curva inferior izquierda
-      { 350.0f, 850.0f }, // 10. Recta inferior antes del zig-zag
-      { 500.0f, 600.0f }, // 11. Zig-zag (subida)
-      { 650.0f, 600.0f }, // 12. Zig-zag (bajada)
-      { 750.0f, 850.0f }  // 13. Horquilla final antes de la meta
+    // 1. Recta de Meta (Subiendo por la izquierda)
+    { 180.0f, 700.0f },
+    { 180.0f, 350.0f },
+
+    // 2. Horquilla Superior (Curva 180° arriba)
+    { 200.0f, 160.0f },
+    { 320.0f, 80.0f  },
+    { 450.0f, 120.0f },
+    { 440.0f, 250.0f }, // Salida de la horquilla
+
+    // 3. La "S" Central / Slalom (El territorio del Kart Rojo)
+    { 520.0f, 320.0f }, // Giro a la derecha
+    { 680.0f, 220.0f }, // Cumbre de la primera 'S'
+    { 760.0f, 300.0f }, // Cambio de peso a la izquierda
+    { 660.0f, 440.0f }, // Centro del slalom
+    { 780.0f, 560.0f }, // Salida disparada a la gran curva
+
+    // 4. Gran Horquilla Inferior Derecha (180° abierta)
+    { 880.0f, 700.0f },
+    { 780.0f, 860.0f },
+    { 620.0f, 840.0f },
+
+    // 5. Diagonal de regreso y la "U" final hacia la meta
+    { 450.0f, 620.0f },
+    { 320.0f, 500.0f }, // Entrada al rincón interno
+    { 320.0f, 720.0f }, // Horquilla de reincorporación
+    { 220.0f, 820.0f }  // Entrada de nuevo a la recta principal
   };
+
   registry.AddComponent<ECS::Path>(track, trackPath);
   
   // 1. EL OBSTÁCULO CENTRAL (Ladrillos)
-  // Lo ponemos justo al centro (400, 300) para que sea inevitable cruzarlo
   ECS::EntityID circle = registry.CreateEntity();
-  registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 400.f, 300.f });
+  registry.AddComponent<ECS::Transform>(circle, sf::Vector2f{ 325.f, 290.f });
   registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE,
     sf::Color(100, 250, 50), "Textures/Bricks.png"));
   // Le damos un radio de colisión un poco más grande (80.f) para obligar a esquivar
   registry.AddComponent<ECS::Obstacle>(circle, ECS::Obstacle{ 80.0f });
 
-  // 2. EL TRIÁNGULO VERDE (Piloto de Carreras)
-  ECS::EntityID agent = registry.CreateEntity();
+  // ==========================================
+  // LA PARRILLA DE SALIDA
+  // ==========================================
 
-  // Lo colocamos exactamente en el primer punto de la pista (Línea de meta)
-  registry.AddComponent<ECS::Transform>(agent, sf::Vector2f{ 850.f, 700.f }, -90.f);
+  // 2. EL KART VERDE (El Estándar - Equilibrado)
+  ECS::EntityID agent = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(agent, sf::Vector2f{ 850.f, 700.f }, 90.f);
   registry.AddComponent<ECS::Render>(agent, ECS::Render::Make(TRIANGLE, sf::Color::Green));
 
-  auto& kinematic = registry.AddComponent<ECS::Kinematic>(agent);
-  kinematic.maxSpeed = 200.f; // Velocidad máxima del kart
-  kinematic.maxForce = 250.f; // Capacidad de giro/aceleración
-  kinematic.velocity = sf::Vector2f{ 0.f, -100.f }; // Le damos un empujón inicial hacia arriba
+  auto& kinGreen = registry.AddComponent<ECS::Kinematic>(agent);
+  kinGreen.maxSpeed = 200.f;
+  kinGreen.maxForce = 300.f;
+  kinGreen.accelerationRate = 85.f; // Aceleración estándar
+  kinGreen.velocity = sf::Vector2f{ 0.f, -100.f };
 
-  // Agregamos el comportamiento de seguir la pista
-  auto& pathFollow = registry.AddComponent<ECS::PathFollow>(agent);
-  pathFollow.pathEntity = track; // Le pasamos el ID de la pista que creamos en el paso anterior
+  auto& pathFollowGreen = registry.AddComponent<ECS::PathFollow>(agent);
+  pathFollowGreen.pathEntity = track;
 
-  // NOTA: Si en tu implementación de PathFollowingSystem usas variables como 
-  // "lookAheadDistance" o "predictTime", configúralas aquí:
-  // pathFollow.predictTime = 0.5f;
+  auto& avoidanceGreen = registry.AddComponent<ECS::ObstacleAvoidance>(agent);
+  avoidanceGreen.maxSeeAhead = 150.f;
+  avoidanceGreen.avoidanceForce = 450.f;
 
-  // 3. EL TRIÁNGULO CELESTE (Cazador Predictivo y Esquivador)
-  ECS::EntityID tri = registry.CreateEntity();
-  registry.AddComponent<ECS::Transform>(tri, sf::Vector2f{ 700.f, 500.f }, 45.f);
-  registry.AddComponent<ECS::Render>(tri, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
 
-  auto& kinTri = registry.AddComponent<ECS::Kinematic>(tri);
-  kinTri.maxSpeed = 160.f;
-  kinTri.maxForce = 180.f;
-  kinTri.velocity = sf::Vector2f{ -50.f, 0.f }; // Velocidad inicial
+  // 3. EL KART AZUL (El Bólido Pesado - Rápido en rectas, derrapa en curvas)
+  ECS::EntityID blueKart = registry.CreateEntity();
+  // Lo colocamos un poco más atrás y a la izquierda
+  registry.AddComponent<ECS::Transform>(blueKart, sf::Vector2f{ 820.f, 730.f }, 90.f);
+  registry.AddComponent<ECS::Render>(blueKart, ECS::Render::Make(TRIANGLE, sf::Color::Cyan));
 
-  auto& pursuit = registry.AddComponent<ECS::Pursuit>(tri);
-  pursuit.targetEntity = agent; // Persigue automáticamente al triángulo verde
+  auto& kinBlue = registry.AddComponent<ECS::Kinematic>(blueKart);
+  kinBlue.maxSpeed = 240.f; // Mayor velocidad punta
+  kinBlue.maxForce = 25.f; // Menor capacidad de giro (provoca derrape)
+  kinBlue.accelerationRate = 45.f; // Aceleración muy lenta (sufre tras frenar en curvas)
+  kinBlue.velocity = sf::Vector2f{ 0.f, -100.f };
 
-  // También esquiva el círculo central si se le atraviesa en la caza
-  auto& triAvoidance = registry.AddComponent<ECS::ObstacleAvoidance>(tri);
-  triAvoidance.maxSeeAhead = 150.f;
-  triAvoidance.avoidanceForce = 400.f;
+  auto& pathFollowBlue = registry.AddComponent<ECS::PathFollow>(blueKart);
+  pathFollowBlue.pathEntity = track;
 
+  auto& avoidanceBlue = registry.AddComponent<ECS::ObstacleAvoidance>(blueKart);
+  avoidanceBlue.maxSeeAhead = 200.f;    // Ve más lejos porque va más rápido
+  avoidanceBlue.avoidanceForce = 450.f;
+
+
+  // 4. EL KART ROJO (El Ligero y Técnico - Lento pero se pega a las curvas)
+  ECS::EntityID redKart = registry.CreateEntity();
+  // Lo colocamos un poco más atrás y a la derecha
+  registry.AddComponent<ECS::Transform>(redKart, sf::Vector2f{ 880.f, 730.f }, 90.f);
+  registry.AddComponent<ECS::Render>(redKart, ECS::Render::Make(TRIANGLE, sf::Color::Red));
+
+  auto& kinRed = registry.AddComponent<ECS::Kinematic>(redKart);
+  kinRed.maxSpeed = 180.f; // Menor velocidad punta
+  kinRed.maxForce = 800.f; // Capacidad de giro brutal
+  kinRed.accelerationRate = 180.f; // Aceleración de respuesta inmediata
+  kinRed.velocity = sf::Vector2f{ 0.f, -100.f };
+
+  auto& pathFollowRed = registry.AddComponent<ECS::PathFollow>(redKart);
+  pathFollowRed.pathEntity = track;
+
+  auto& avoidanceRed = registry.AddComponent<ECS::ObstacleAvoidance>(redKart);
+  avoidanceRed.maxSeeAhead = 100.f;    // Reacciona en distancias más cortas
+  avoidanceRed.avoidanceForce = 450.f;
 
   // ==========================================
   // CÁMARA
   // ==========================================
   ECS::EntityID cam = registry.CreateEntity();
-  registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 0.f, 0.f });
+  registry.AddComponent<ECS::Transform>(cam, sf::Vector2f{ 350.f, 420.f });
   auto& camComp = registry.AddComponent<ECS::Camera>(cam);
   camComp.followTarget = ECS::NULL_ENTITY;
   camComp.followSpeed = 5.f;

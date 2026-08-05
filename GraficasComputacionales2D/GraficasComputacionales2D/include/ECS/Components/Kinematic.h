@@ -36,5 +36,8 @@ namespace ECS {
 
     /** @brief Límite de fuerza máxima permitida para alterar la dirección (giro/dirección). */
     float maxForce = 150.f;  // Fuerza máxima de giro/dirección
+
+    // --- NUEVO: Tasa de aceleración individual del motor ---
+    float accelerationRate = 85.0f;
   };
 } // Namespace ECS

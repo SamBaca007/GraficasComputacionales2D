@@ -1,13 +1,6 @@
 /**
  * @file ObstacleAvoidanceSystem.h
  * @brief Sistema de Inteligencia Artificial para la detección y evasión activa de obstáculos.
- *
- * @details Evaluando las entidades que poseen Transform, Kinematic y ObstacleAvoidance, este
- * sistema calcula un "rayo de visión" vectorial hacia la dirección de movimiento actual.
- * Luego, itera sobre las entidades que posean el componente Obstacle en el mundo; si detecta
- * una colisión inminente en su trayectoria proyectada, genera una fuerza lateral repulsiva para
- * esquivar el peligro y la acumula en el componente Kinematic sin sobrescribir otras fuerzas
- * de navegación que estén activas al mismo tiempo.
  */
 
 #pragma once
@@ -18,40 +11,24 @@
 #include "ECS/Components/ObstacleAvoidance.h"
 #include "ECS/Components/Obstacle.h"
 #include <cmath>
+#include <algorithm> // Necesario para std::min
 
- /**
-  * @namespace ECS
-  * @brief Espacio de nombres que agrupa las clases y structures del Entity Component System.
-  */
 namespace ECS {
 
-  /**
-   * @class ObstacleAvoidanceSystem
-   * @brief Sistema encargado de prevenir colisiones mediante el desvío dinámico de trayectorias.
-   */
   class ObstacleAvoidanceSystem final : public System {
   public:
-    /**
-     * @brief Actualiza el sistema comprobando obstrucciones y aplicando fuerzas evasivas.
-     * @details Si la entidad está en movimiento (> 0.1f), proyecta un punto temporal frente
-     * a ella (`ahead`) en función del vector velocidad normalizado multiplicado por `maxSeeAhead`.
-     * Posterior a ello, busca la entidad con componente Obstacle más cercana cuyo radio colisione
-     * con dicho punto. Si hay colisión, calcula una fuerza perpendicular o de alejamiento escalada
-     * por `avoidanceForce` y la suma a la aceleración del componente Kinematic.
-     * * @param registry Referencia al registro del ECS donde residen todas las entidades y componentes.
-     * @param dt Tiempo transcurrido desde el último frame (en segundos).
-     */
     void OnUpdate(Registry& registry, float dt) override {
       registry.GetView<Transform, Kinematic, ObstacleAvoidance>().Each(
         [&](EntityID entity, Transform& transform, Kinematic& kinematic, ObstacleAvoidance& avoidance) {
 
-          float speed = std::sqrt(kinematic.velocity.x * kinematic.velocity.x + kinematic.velocity.y
-            * kinematic.velocity.y);
+          float speed = std::sqrt(kinematic.velocity.x * kinematic.velocity.x + kinematic.velocity.y * kinematic.velocity.y);
           if (speed < 0.1f) return; // Si casi no se mueve, no esquiva
 
-          // Proyectar un "rayo de visión" usando tu maxSeeAhead
           sf::Vector2f forward = kinematic.velocity / speed;
+
+          // Proyectar DOS puntos de visión para mayor precisión a altas velocidades
           sf::Vector2f ahead = transform.position + forward * avoidance.maxSeeAhead;
+          sf::Vector2f ahead2 = transform.position + forward * (avoidance.maxSeeAhead * 0.5f);
 
           EntityID closestObstacle = NULL_ENTITY;
           float minDistance = 999999.f;
@@ -62,23 +39,28 @@ namespace ECS {
             [&](EntityID obsEntity, Transform& obsTrans, Obstacle& obs) {
               if (entity == obsEntity) return;
 
-              float dx = obsTrans.position.x - ahead.x;
-              float dy = obsTrans.position.y - ahead.y;
-              float dist = std::sqrt(dx * dx + dy * dy);
+              // Calcular la distancia desde el centro del obstáculo a nuestros puntos de detección
+              float d1 = std::sqrt(std::pow(obsTrans.position.x - ahead.x, 2) + std::pow(obsTrans.position.y - ahead.y, 2));
+              float d2 = std::sqrt(std::pow(obsTrans.position.x - ahead2.x, 2) + std::pow(obsTrans.position.y - ahead2.y, 2));
+              float dPos = std::sqrt(std::pow(obsTrans.position.x - transform.position.x, 2) + std::pow(obsTrans.position.y - transform.position.y, 2));
 
-              // Si el obstáculo está dentro de nuestra visión y área de colisión
-              if (dist < obs.radius + 30.f && dist < minDistance) {
-                minDistance = dist;
+              // Tomamos la distancia más corta de los tres puntos evaluados
+              float minDistToObs = std::min({ d1, d2, dPos });
+
+              // Si el rayo choca con el radio de colisión
+              if (minDistToObs < obs.radius + 15.f && minDistToObs < minDistance) {
+                minDistance = minDistToObs;
                 closestObstacle = obsEntity;
                 obstaclePos = obsTrans.position;
               }
             });
 
+          // Si detectamos un obstáculo, aplicamos fuerza de evasión
           if (closestObstacle != NULL_ENTITY) {
             sf::Vector2f avoidanceForce = ahead - obstaclePos;
             float forceLength = std::sqrt(avoidanceForce.x * avoidanceForce.x + avoidanceForce.y * avoidanceForce.y);
+
             if (forceLength > 0) {
-              // Aplicamos tu avoidanceForce para esquivar
               avoidanceForce = (avoidanceForce / forceLength) * avoidance.avoidanceForce;
             }
 
