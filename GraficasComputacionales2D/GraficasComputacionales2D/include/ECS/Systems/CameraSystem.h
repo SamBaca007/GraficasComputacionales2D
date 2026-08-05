@@ -53,7 +53,12 @@ namespace ECS {
      * @param deltaTime Tiempo transcurrido desde el último frame.
      */
     void OnUpdate(Registry& registry, float deltaTime) override {
-      registry.GetView<Transform, Camera>().Each([this, &registry, deltaTime]
+
+      // Factor de escala interno para mapas gigantes (4000x4000).
+      // Un zoom de 1.0 en el componente equivaldrá a este valor en pantalla.
+      constexpr float BASE_SCALE = 0.24f;
+
+      registry.GetView<Transform, Camera>().Each([this, &registry, deltaTime, BASE_SCALE]
       (EntityID, Transform& camT, Camera& cam) {
           if (!cam.active) return;
 
@@ -69,8 +74,11 @@ namespace ECS {
             }
           }
 
-          // Vuelca la posición/zoom de la cámara a la vista SFML.
-          m_window.applyCameraView(camT.position, cam.zoom, camT.rotation);
+          // Calculamos el zoom efectivo combinando la escala base con el multiplicador del usuario
+          float effectiveZoom = cam.zoom * BASE_SCALE;
+
+          // Vuelca la posición y el zoom efectivo de la cámara a la vista SFML.
+          m_window.applyCameraView(camT.position, effectiveZoom, camT.rotation);
         });
     }
 

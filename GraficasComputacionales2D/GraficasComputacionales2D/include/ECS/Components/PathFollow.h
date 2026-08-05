@@ -38,6 +38,17 @@ namespace ECS {
      * logrando que el regreso sea fluido y no un giro robótico de 90 grados.
      */
     float targetOffset = 30.0f;
+
+    /**
+     * @brief Índice del segmento actual de la pista que el kart está recorriendo.
+     * @details Se actualiza automáticamente por el PathFollowingSystem.
+     */
+    size_t currentSegment = 0;
+
+    /**
+     * @brief Vuelta actual en la que se encuentra el corredor.
+     */
+    int currentLap = 0;
   };
 
 } // Namespace ECS

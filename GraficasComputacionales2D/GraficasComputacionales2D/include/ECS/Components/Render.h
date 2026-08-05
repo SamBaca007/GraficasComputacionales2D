@@ -107,32 +107,37 @@ namespace ECS {
      * @param color Color de relleno (por defecto sf::Color::White).
      * @param texturePath Ruta opcional a una textura. Si se pasa una ruta, intenta cargar
      *                    el sprite (falla de forma silenciosa si no lo encuentra).
+     * @param width Ancho opcional de la figura (usa valores por defecto si es <= 0).
+     * @param height Alto opcional de la figura (usa valores por defecto si es <= 0).
      * @return Render Una nueva instancia del componente Render inicializada.
      */
     [[nodiscard]] static Render
       Make(ShapeType type, sf::Color color = sf::Color::White,
-        const std::string& texturePath = "") {
+        const std::string& texturePath = "", float width = 0.f, float height = 0.f) {
       std::shared_ptr<sf::Shape> s;
       switch (type) {
       case CIRCLE: {
-        auto c = std::make_shared<sf::CircleShape>(50.f);
-        c->setOrigin({ 50.f,50.f }); // centro = radio
+        float radius = (width > 0.f) ? width / 2.f : 50.f;
+        auto c = std::make_shared<sf::CircleShape>(radius);
+        c->setOrigin({ radius, radius }); // centro = radio
         s = c;
         break;
       }
       case RECTANGLE: {
-        sf::Vector2f size{ 100.f,100.f };
+        sf::Vector2f size{ (width > 0.f) ? width : 100.f, (height > 0.f) ? height : 100.f };
         auto r = std::make_shared<sf::RectangleShape>(size);
         r->setOrigin(size / 2.f);
         s = r;
         break;
       }
       case TRIANGLE: {
+        float w = (width > 0.f) ? width : 100.f;
+        float h = (height > 0.f) ? height : 100.f;
         auto t = std::make_shared<sf::ConvexShape>(3);
         t->setPoint(0, { 0.f, 0.f });
-        t->setPoint(1, { 100.f, 0.f });
-        t->setPoint(2, { 50.f, 100.f });
-        t->setOrigin({ 50.f, 50.f });
+        t->setPoint(1, { w, 0.f });
+        t->setPoint(2, { w / 2.f, h });
+        t->setOrigin({ w / 2.f, h / 2.f });
         s = t;
         break;
       }

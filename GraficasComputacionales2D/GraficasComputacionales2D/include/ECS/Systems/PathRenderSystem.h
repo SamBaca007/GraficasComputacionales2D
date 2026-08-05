@@ -6,7 +6,19 @@
 namespace ECS {
   class PathRenderSystem {
   public:
+    // 1. Variable estática para controlar la visibilidad (apagada por defecto).
+    // Nota: El uso de 'inline static' requiere C++17 o superior.
+    inline static bool s_showDebugPath = false;
+
+    // 2. Método para alternar la visibilidad desde tu gestor de eventos
+    static void ToggleDebugPath() {
+      s_showDebugPath = !s_showDebugPath;
+    }
+
     static void Render(Window& window, const Path& path) {
+      // 3. Condición de salida temprana: si no queremos depurar, no dibujamos.
+      if (!s_showDebugPath) return;
+
       if (path.points.empty()) return;
 
       // Usamos LineStrip para conectar los puntos automáticamente

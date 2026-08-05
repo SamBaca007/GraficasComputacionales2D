@@ -71,7 +71,7 @@ namespace ECS {
       const sf::Vector2f& velocity,
       float maxSpeed,
       const Path& path,
-      const PathFollow& follow)
+      PathFollow& follow)
     {
       if (path.points.size() < 2) {
         return sf::Vector2f(0.0f, 0.0f);
@@ -103,6 +103,22 @@ namespace ECS {
           bestIndex = i; // Guardamos el índice ganador
         }
       }
+
+      // --- NUEVO: LÓGICA DE VUELTAS ---
+      size_t totalSegments = path.points.size();
+
+      // Si estábamos en el 90% final de la pista y de pronto pasamos al 10% inicial, cruzamos la meta hacia adelante
+      if (follow.currentSegment > totalSegments * 0.9f && bestIndex < totalSegments * 0.1f) {
+        follow.currentLap++;
+      }
+      // Si estábamos al inicio y retrocedemos al final, cruzamos la meta en reversa
+      else if (follow.currentSegment < totalSegments * 0.1f && bestIndex > totalSegments * 0.9f) {
+        follow.currentLap--;
+      }
+
+      // Guardamos el índice ganador actualizado
+      follow.currentSegment = bestIndex;
+      // --------------------------------
 
       // 3. Decisión y Corrección (Curvas Suaves)
       // Obtenemos el vértice final de nuestro segmento actual

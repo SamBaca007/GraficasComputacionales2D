@@ -16,19 +16,6 @@ namespace ECS {
       view.Each([&](ECS::EntityID entity, ECS::Transform& transform,
         ECS::Kinematic& kinematic) {
 
-          // ==========================================
-          // LÍMITES SUAVES (CONTAINMENT)
-          // ==========================================
-          const float limitX = 1000.0f;
-          const float limitY = 1000.0f;
-          const float returnForce = 200.0f;
-
-          if (transform.position.x < -limitX) kinematic.acceleration.x += returnForce;
-          if (transform.position.x > limitX)  kinematic.acceleration.x -= returnForce;
-          if (transform.position.y < -limitY) kinematic.acceleration.y += returnForce;
-          if (transform.position.y > limitY)  kinematic.acceleration.y -= returnForce;
-          // ==========================================
-
           float currentSpeed = ECS::length(kinematic.velocity);
           float accelMag = ECS::length(kinematic.acceleration);
 
