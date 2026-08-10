@@ -184,6 +184,7 @@
     <ClInclude Include="include\Core\Window.h" />
     <ClInclude Include="include\ECS\ComponentPool.h" />
     <ClInclude Include="include\ECS\Components\Camera.h" />
+    <ClInclude Include="include\ECS\Components\DRS.h" />
     <ClInclude Include="include\ECS\Components\Kinematic.h" />
     <ClInclude Include="include\ECS\Components\Obstacle.h" />
     <ClInclude Include="include\ECS\Components\ObstacleAvoidance.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="include\ECS\SparseSet.h" />
     <ClInclude Include="include\ECS\System.h" />
     <ClInclude Include="include\ECS\Systems\CameraSystem.h" />
+    <ClInclude Include="include\ECS\Systems\DRSSystem.h" />
     <ClInclude Include="include\ECS\Systems\KinematicSystem.h" />
     <ClInclude Include="include\ECS\Systems\ObstacleAvoidanceSystem.h" />
     <ClInclude Include="include\ECS\Systems\PathFollowingSystem.h" />

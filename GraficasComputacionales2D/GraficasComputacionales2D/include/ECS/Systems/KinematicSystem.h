@@ -78,7 +78,7 @@ namespace ECS {
           // 6. Orientar la figura hacia la velocidad
           if (currentSpeed > 0.1f) {
             transform.rotation = std::atan2(kinematic.velocity.y, kinematic.velocity.x)
-              * (180.f / 3.14159265f) - 90.0f;
+              * (180.f / 3.14159265f);
           }
 
           // 7. Reiniciar la aceleración para el siguiente frame
