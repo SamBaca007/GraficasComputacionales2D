@@ -27,6 +27,7 @@
 #include "ECS/Systems/PathFollowingSystem.h"
 #include "ECS/Components/DRS.h"
 #include "ECS/Systems/DRSSystem.h"
+#include "ECS/Components/KartProfile.h"
 #include <iomanip>
 #include <sstream>
 
@@ -71,21 +72,38 @@ int main() {
   trackPath.radius = 100.0f;
 
   trackPath.points = {
-    { -615.0f,  555.0f }, { -512.0f,  138.0f }, { -171.0f,  -31.0f },
-    {  186.0f, -244.0f }, {  260.0f, -555.0f }, {  317.0f, -946.0f },
-    {  469.0f, -1013.0f }, {  692.0f, -816.0f }, {  680.0f, -581.0f },
+    // Recta principal y primera secuencia
+    { -615.0f,  555.0f }, { -512.0f,  138.0f }, { -151.0f,  -11.0f },
+    {  186.0f, -210.0f }, {  260.0f, -555.0f }, {  317.0f, -946.0f },
+    {  393.0f, -980.0f }, {  469.0f, -1013.0f}, {  580.0f, -914.0f },
+    {  692.0f, -816.0f }, {  680.0f, -611.0f },
+
+    // RESTAURADOS: Curvas derechas (ya no rozarán)
     {  593.0f, -220.0f }, {  454.0f,   50.0f }, {  608.0f,  250.0f },
     {  840.0f,   89.0f }, { 1057.0f, -150.0f }, { 1270.0f, -268.0f },
-    { 1498.0f, -145.0f }, { 1838.0f,   31.0f }, { 2005.0f,  224.0f },
+    { 1470.0f, -120.0f }, { 1800.0f,   50.0f },
+
+    { 1921.0f,  127.0f }, { 2005.0f,  224.0f }, { 1951.0f,  318.0f },
     { 1897.0f,  412.0f }, { 1625.0f,  421.0f }, { 1326.0f,  415.0f },
     { 1073.0f,  461.0f }, { 1032.0f,  593.0f }, { 1210.0f,  810.0f },
-    { 1810.0f, 1383.0f }, { 2017.0f, 1640.0f }, { 1944.0f, 1834.0f },
-    { 1647.0f, 1841.0f }, { 1311.0f, 1533.0f }, { 1143.0f, 1414.0f },
-    { 1034.0f, 1211.0f }, {  807.0f, 1115.0f }, {  446.0f, 1031.0f },
-    {  264.0f,  741.0f }, {  118.0f,  576.0f }, {  -59.0f,  603.0f },
-    { -113.0f,  808.0f }, { -109.0f, 1383.0f }, { -177.0f, 1602.0f },
-    { -360.0f, 1678.0f }, { -547.0f, 1597.0f }, { -606.0f, 1454.0f },
-    { -615.0f, 1250.0f }
+    { 1810.0f, 1383.0f }, { 1913.0f, 1511.0f }, { 2017.0f, 1640.0f },
+    { 1980.0f, 1737.0f }, { 1944.0f, 1834.0f }, { 1795.0f, 1837.0f },
+    { 1647.0f, 1841.0f }, { 1509.0f, 1666.0f }, { 1311.0f, 1533.0f },
+    { 1143.0f, 1414.0f }, { 1034.0f, 1211.0f }, {  807.0f, 1095.0f },
+    {  446.0f, 1031.0f }, {  264.0f,  741.0f }, {  191.0f,  658.0f },
+
+    // RESTAURADO: El Zig-Zag original
+    {  118.0f,  576.0f },
+    {   29.0f,  589.0f },
+    {  -59.0f,  603.0f },
+
+    {  -86.0f,  705.0f }, { -113.0f,  808.0f }, { -109.0f, 1383.0f },
+    { -143.0f, 1492.0f }, { -177.0f, 1602.0f },
+
+    // AJUSTE PREVIO: Horquilla inferior izquierda (Mantenido)
+    { -280.0f, 1670.0f }, { -360.0f, 1690.0f }, { -470.0f, 1670.0f },
+
+    { -547.0f, 1597.0f }, { -576.0f, 1525.0f }, { -606.0f, 1454.0f }, { -615.0f, 1250.0f }
   };
 
   registry.AddComponent<ECS::Path>(track, trackPath);
@@ -98,38 +116,139 @@ int main() {
   registry.AddComponent<ECS::Render>(circle, ECS::Render::Make(CIRCLE, sf::Color(100, 250, 50), "Textures/Bricks.png", 80.f, 80.f));
   registry.AddComponent<ECS::Obstacle>(circle, ECS::Obstacle{ 120.0f });
 
-  // 2. KART VERDE (Estándar)
+  // Obstáculo: Recta izquierda (cerca de la meta)
+  ECS::EntityID obs1 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs1, sf::Vector2f{ -582.f, 874.f });
+  registry.AddComponent<ECS::Render>(obs1, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs1, ECS::Obstacle{ 45.0f }); // Radio ajustado al tamaño visual
+
+  // Obstáculo: Curva superior izquierda
+  ECS::EntityID obs2 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs2, sf::Vector2f{ 19.f, -145.f });
+  registry.AddComponent<ECS::Render>(obs2, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs2, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva superior izquierda 2
+  ECS::EntityID obs6 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs6, sf::Vector2f{ 145.f, -256.f });
+  registry.AddComponent<ECS::Render>(obs6, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs6, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Bajada después de la horquilla superior
+  ECS::EntityID obs3 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs3, sf::Vector2f{ 640.f, -247.f });
+  registry.AddComponent<ECS::Render>(obs3, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs3, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva 5
+  ECS::EntityID obs7 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs7, sf::Vector2f{ 1153.f, -277.f });
+  registry.AddComponent<ECS::Render>(obs7, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs7, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva superior derecha (sección larga, parte alta)
+  ECS::EntityID obs4 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs4, sf::Vector2f{ 1737.f, -16.f });
+  registry.AddComponent<ECS::Render>(obs4, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs4, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva superior derecha (sección larga, parte baja)
+  ECS::EntityID obs8 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs8, sf::Vector2f{ 1776.f, 484.f });
+  registry.AddComponent<ECS::Render>(obs8, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs8, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva superior derecha (recta 2, parte alta)
+  ECS::EntityID obs9 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs9, sf::Vector2f{ 1360.f, 992.f });
+  registry.AddComponent<ECS::Render>(obs9, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs9, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Curva superior derecha (recta 2, parte baja)
+  ECS::EntityID obs10 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs10, sf::Vector2f{ 1838.f, 1372.f });
+  registry.AddComponent<ECS::Render>(obs10, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs10, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Zig-zag central (entrada)
+  ECS::EntityID obs11 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs11, sf::Vector2f{ 1482.f, 1589.f });
+  registry.AddComponent<ECS::Render>(obs11, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs11, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Zig-zag central (punto medio)
+  ECS::EntityID obs12 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs12, sf::Vector2f{ 932.f, 1188.f });
+  registry.AddComponent<ECS::Render>(obs12, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs12, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Zig-zag central (salida)
+  ECS::EntityID obs5 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs5, sf::Vector2f{ 167.f, 575.f });
+  registry.AddComponent<ECS::Render>(obs5, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs5, ECS::Obstacle{ 45.0f });
+
+  // Obstáculo: Recta izquierda (hasta abajo)
+  ECS::EntityID obs13 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs13, sf::Vector2f{ -648.f, 1248.f });
+  registry.AddComponent<ECS::Render>(obs13, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs13, ECS::Obstacle{ 45.0f }); // Radio ajustado al tamaño visual
+
+  // Obstáculo: Recta izquierda (en medio del anterior y el primero)
+  ECS::EntityID obs14 = registry.CreateEntity();
+  registry.AddComponent<ECS::Transform>(obs14, sf::Vector2f{ -655.f, 1054.f });
+  registry.AddComponent<ECS::Render>(obs14, ECS::Render::Make(CIRCLE, sf::Color(0, 150, 255), "Textures/Bricks.png", 44.f, 44.f));
+  registry.AddComponent<ECS::Obstacle>(obs14, ECS::Obstacle{ 45.0f }); // Radio ajustado al tamaño visual
+
+// 1. KART VERDE (Estándar) - El verdadero equilibrio
+// Subimos un poco su maxForce y aceleración para que esté exactamente en el 
+// punto medio entre el rojo y el azul. Esto debería suavizar su agresividad.
   ECS::EntityID greenKart = registry.CreateEntity();
   registry.AddComponent<ECS::Transform>(greenKart, sf::Vector2f{ -615.f, 1100.f }, -90.f);
   registry.AddComponent<ECS::Render>(greenKart, ECS::Render::Make(RECTANGLE, sf::Color::White, "Textures/GreenKart.png", 100.f, 100.f));
+  registry.AddComponent<ECS::KartProfile>(greenKart, ECS::KartProfile{ "Kart Verde (Estandar)", sf::Color::Green });
   auto& kinGreen = registry.AddComponent<ECS::Kinematic>(greenKart);
-  kinGreen.maxSpeed = 202.f; kinGreen.maxForce = 300.f; kinGreen.accelerationRate = 80.f;
+  kinGreen.maxSpeed = 475.f;        // Intermedio
+  kinGreen.maxForce = 650.f;        // Agarre moderado
+  kinGreen.accelerationRate = 300.f;// Aceleración decente
   kinGreen.velocity = sf::Vector2f{ 0.f, -100.f };
   registry.AddComponent<ECS::PathFollow>(greenKart, ECS::PathFollow{ track });
-  registry.AddComponent<ECS::ObstacleAvoidance>(greenKart, ECS::ObstacleAvoidance{ 150.f, 450.f });
+  registry.AddComponent<ECS::ObstacleAvoidance>(greenKart, ECS::ObstacleAvoidance{ 80.f, 250.f });
   registry.AddComponent<ECS::DRS>(greenKart, ECS::DRS{});
+  registry.AddComponent<ECS::Obstacle>(greenKart, ECS::Obstacle{ 25.0f });
 
-  // 3. KART AZUL (Pesado)
+  // 2. KART AZUL (Pesado) - El gigante dormido
+  // Le subimos el maxForce para que tome la curva sin salirse, pero le 
+  // destrozamos la aceleración. Entrará a la curva, perderá velocidad por el giro, 
+  // y tardará una eternidad en volver a su brutal velocidad máxima.
   ECS::EntityID blueKart = registry.CreateEntity();
   registry.AddComponent<ECS::Transform>(blueKart, sf::Vector2f{ -665.f, 1150.f }, -90.f);
   registry.AddComponent<ECS::Render>(blueKart, ECS::Render::Make(RECTANGLE, sf::Color::White, "Textures/BlueKart.png", 100.f, 100.f));
+  registry.AddComponent<ECS::KartProfile>(blueKart, ECS::KartProfile{ "Kart Azul (Pesado)", sf::Color::Cyan });
   auto& kinBlue = registry.AddComponent<ECS::Kinematic>(blueKart);
-  kinBlue.maxSpeed = 225.f; kinBlue.maxForce = 25.f; kinBlue.accelerationRate = 45.f;
+  kinBlue.maxSpeed = 505.f;         // Sigue siendo el rey en línea recta
+  kinBlue.maxForce = 580.f;         // Ahora tiene suficiente giro para no salirse
+  kinBlue.accelerationRate = 150.f; // ¡Pero es lentísimo para arrancar o recuperar velocidad!
   kinBlue.velocity = sf::Vector2f{ 0.f, -100.f };
   registry.AddComponent<ECS::PathFollow>(blueKart, ECS::PathFollow{ track });
-  registry.AddComponent<ECS::ObstacleAvoidance>(blueKart, ECS::ObstacleAvoidance{ 200.f, 450.f });
+  registry.AddComponent<ECS::ObstacleAvoidance>(blueKart, ECS::ObstacleAvoidance{ 120.f, 200.f });
   registry.AddComponent<ECS::DRS>(blueKart, ECS::DRS{});
+  registry.AddComponent<ECS::Obstacle>(blueKart, ECS::Obstacle{ 25.0f });
 
-  // 4. KART ROJO (Ligero)
+  // 3. KART ROJO (Ligero) - La mosca ágil (Intacto)
   ECS::EntityID redKart = registry.CreateEntity();
   registry.AddComponent<ECS::Transform>(redKart, sf::Vector2f{ -565.f, 1150.f }, -90.f);
   registry.AddComponent<ECS::Render>(redKart, ECS::Render::Make(RECTANGLE, sf::Color::White, "Textures/RedKart.png", 100.f, 100.f));
+  registry.AddComponent<ECS::KartProfile>(redKart, ECS::KartProfile{ "Kart Rojo (Ligero)", sf::Color::Red });
   auto& kinRed = registry.AddComponent<ECS::Kinematic>(redKart);
-  kinRed.maxSpeed = 190.f; kinRed.maxForce = 600.f; kinRed.accelerationRate = 165.f;
+  kinRed.maxSpeed = 470.f;          // El más lento en rectas
+  kinRed.maxForce = 855.f;          // Agarre brutal, ni se inmuta en las curvas
+  kinRed.accelerationRate = 455.f;  // Se recupera instantáneamente de cualquier freno
   kinRed.velocity = sf::Vector2f{ 0.f, -100.f };
   registry.AddComponent<ECS::PathFollow>(redKart, ECS::PathFollow{ track });
-  registry.AddComponent<ECS::ObstacleAvoidance>(redKart, ECS::ObstacleAvoidance{ 100.f, 450.f });
+  registry.AddComponent<ECS::ObstacleAvoidance>(redKart, ECS::ObstacleAvoidance{ 60.f, 350.f });
   registry.AddComponent<ECS::DRS>(redKart, ECS::DRS{});
+  registry.AddComponent<ECS::Obstacle>(redKart, ECS::Obstacle{ 25.0f });
 
   // MAPA FONDO
   ECS::EntityID background = registry.CreateEntity();
@@ -180,7 +299,12 @@ int main() {
     }
 
     const sf::Time elapsedTime = deltaClock.restart();
-    const float dt = elapsedTime.asSeconds();
+    float dt = elapsedTime.asSeconds();
+
+    // Limitamos el dt para evitar explosiones físicas por el lag
+    if (dt > 0.1f) {
+      dt = 0.1f;
+    }
 
     ImGui::SFML::Update(*g_window.m_window, elapsedTime);
     ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
@@ -239,39 +363,26 @@ int main() {
       };
       std::vector<KartData> leaderboard;
 
-      registry.GetView<ECS::Transform, ECS::Render, ECS::Kinematic, ECS::PathFollow>().Each(
-        [&](ECS::EntityID entity, ECS::Transform& transform, ECS::Render& render,
+      registry.GetView<ECS::Transform, ECS::KartProfile, ECS::Kinematic, ECS::PathFollow>().Each(
+        [&](ECS::EntityID entity, ECS::Transform& transform, ECS::KartProfile& profile,
           ECS::Kinematic& kin, ECS::PathFollow& follow) {
 
-          std::string kartName = "Piloto Desconocido";
-          sf::Color uiColor = sf::Color::White;
+            // Tomamos la identidad directamente del componente KartProfile
+            std::string kartName = profile.name;
+            sf::Color uiColor = profile.uiColor;
 
-          // Identificamos a los karts por su maxForce en lugar de su color de Render
-          if (kin.maxForce == 300.f) {
-            kartName = "Kart Verde (Estandar)";
-            uiColor = sf::Color::Green;
-          }
-          else if (kin.maxForce == 25.f) {
-            kartName = "Kart Azul (Pesado)";
-            uiColor = sf::Color::Cyan;
-          }
-          else if (kin.maxForce == 600.f) {
-            kartName = "Kart Rojo (Ligero)";
-            uiColor = sf::Color::Red;
-          }
+            float currentSpeed = std::sqrt(kin.velocity.x * kin.velocity.x + kin.velocity.y * kin.velocity.y);
 
-          float currentSpeed = std::sqrt(kin.velocity.x * kin.velocity.x + kin.velocity.y * kin.velocity.y);
+            size_t nextWaypoint = (follow.currentSegment + 1) % trackPath.points.size();
+            sf::Vector2f targetPos = trackPath.points[nextWaypoint];
+            float dx = targetPos.x - transform.position.x;
+            float dy = targetPos.y - transform.position.y;
+            float dist = std::sqrt(dx * dx + dy * dy);
 
-          size_t nextWaypoint = (follow.currentSegment + 1) % trackPath.points.size();
-          sf::Vector2f targetPos = trackPath.points[nextWaypoint];
-          float dx = targetPos.x - transform.position.x;
-          float dy = targetPos.y - transform.position.y;
-          float dist = std::sqrt(dx * dx + dy * dy);
+            auto& timer = kartTimers[entity];
 
-          auto& timer = kartTimers[entity];
-
-          leaderboard.push_back({ kartName, uiColor, currentSpeed, follow.currentSegment,
-            follow.currentLap, dist, timer.currentLapTime, timer.bestLapTime, timer.hasCompletedLap });
+            leaderboard.push_back({ kartName, uiColor, currentSpeed, follow.currentSegment,
+              follow.currentLap, dist, timer.currentLapTime, timer.bestLapTime, timer.hasCompletedLap });
         });
 
       std::sort(leaderboard.begin(), leaderboard.end(), [](const KartData& a, const KartData& b) {

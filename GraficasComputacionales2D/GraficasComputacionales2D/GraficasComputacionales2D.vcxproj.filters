@@ -158,5 +158,8 @@
     <ClInclude Include="include\ECS\Systems\DRSSystem.h">
       <Filter>Archivos de encabezado\ECS\Systems</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Components\KartProfile.h">
+      <Filter>Archivos de encabezado\ECS\Components</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

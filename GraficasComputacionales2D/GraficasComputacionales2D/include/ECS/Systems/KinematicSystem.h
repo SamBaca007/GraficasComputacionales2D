@@ -19,6 +19,15 @@ namespace ECS {
           float currentSpeed = ECS::length(kinematic.velocity);
           float accelMag = ECS::length(kinematic.acceleration);
 
+          // ==========================================
+          // NUEVO: LIMITAR A LA FUERZA MÁXIMA DEL KART
+          // ==========================================
+          if (accelMag > kinematic.maxForce) {
+            kinematic.acceleration = (kinematic.acceleration / accelMag) * kinematic.maxForce;
+            accelMag = kinematic.maxForce; // Actualizamos la magnitud para el resto del código
+          }
+          // ==========================================
+
           // 1. PERDIDA DE VELOCIDAD POR DERRAPE / CURVA CERRADA
           if (currentSpeed > 10.0f && accelMag > 0.1f) {
             sf::Vector2f dirVel = kinematic.velocity / currentSpeed;

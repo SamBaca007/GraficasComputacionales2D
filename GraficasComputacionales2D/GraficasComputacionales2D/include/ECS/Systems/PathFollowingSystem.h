@@ -5,10 +5,10 @@
 
 #pragma once
 #include "Prerequisites.h"
-#include "ECS/System.h"               // <-- NUEVO: Clase base del ECS
-#include "ECS/Registry.h"             // <-- NUEVO: Para consultar componentes
-#include "ECS/Components/Transform.h" // <-- NUEVO: Para saber dónde está el kart
-#include "ECS/Components/Kinematic.h" // <-- NUEVO: Para saber a qué velocidad va
+#include "ECS/System.h"               
+#include "ECS/Registry.h"             
+#include "ECS/Components/Transform.h" 
+#include "ECS/Components/Kinematic.h" 
 #include "ECS/Components/Path.h"
 #include "ECS/Components/PathFollow.h"
 #include "ECS/Components/Steering.h"
@@ -21,7 +21,6 @@ namespace ECS {
    * @class PathFollowingSystem
    * @brief Modifica la fuerza de dirección (Steering) para seguir una ruta prediciendo la posición futura.
    */
-   // <-- CORRECCIÓN: Herencia pública de System para que Registry.h no falle
   class PathFollowingSystem final : public System {
   private:
     // --- Utilidades Matemáticas SFML ---
@@ -65,7 +64,7 @@ namespace ECS {
 
   public:
     /**
-     * @brief Calcula la fuerza Seek para seguir la pista, anticipando curvas.
+     * @brief Calcula la fuerza Seek para seguir la pista, anticipando curvas de forma controlada.
      */
     static sf::Vector2f CalculateSteering(const sf::Vector2f& currentPos,
       const sf::Vector2f& velocity,
@@ -77,21 +76,28 @@ namespace ECS {
         return sf::Vector2f(0.0f, 0.0f);
       }
 
-      // 1. Predicción
-      sf::Vector2f vNorm = Normalize(velocity);
-      sf::Vector2f futurePos = currentPos + (vNorm * follow.predictTime);
+      // 1. Predicción Dinámica LIMITADA
+      float lookAheadTime = follow.predictTime / 100.0f;
+      sf::Vector2f predictedMovement = velocity * lookAheadTime;
+
+      // LÍMITE: Evitamos que el kart mire ridículamente lejos si va muy rápido.
+      // Esto previene que corten camino por el pasto.
+      float maxPredictionDistance = 40.0f;
+      if (Length(predictedMovement) > maxPredictionDistance) {
+        predictedMovement = Normalize(predictedMovement) * maxPredictionDistance;
+      }
+
+      sf::Vector2f futurePos = currentPos + predictedMovement;
 
       sf::Vector2f targetNormalPoint(0.0f, 0.0f);
       sf::Vector2f targetDir(0.0f, 0.0f);
       float worldRecord = 999999.0f;
-
-      // NUEVO: Guardaremos en qué segmento de la pista estamos
       size_t bestIndex = 0;
 
       // 2. Búsqueda del segmento más cercano
       for (size_t i = 0; i < path.points.size(); ++i) {
         sf::Vector2f a = path.points[i];
-        sf::Vector2f b = path.points[(i + 1) % path.points.size()]; // Bucle cerrado
+        sf::Vector2f b = path.points[(i + 1) % path.points.size()];
 
         sf::Vector2f normalPoint = GetNormalPoint(futurePos, a, b);
         float dist = Length(futurePos - normalPoint);
@@ -100,55 +106,45 @@ namespace ECS {
           worldRecord = dist;
           targetNormalPoint = normalPoint;
           targetDir = Normalize(b - a);
-          bestIndex = i; // Guardamos el índice ganador
+          bestIndex = i;
         }
       }
 
-      // --- NUEVO: LÓGICA DE VUELTAS ---
+      // --- LÓGICA DE VUELTAS ---
       size_t totalSegments = path.points.size();
-
-      // Si estábamos en el 90% final de la pista y de pronto pasamos al 10% inicial, cruzamos la meta hacia adelante
       if (follow.currentSegment > totalSegments * 0.9f && bestIndex < totalSegments * 0.1f) {
         follow.currentLap++;
       }
-      // Si estábamos al inicio y retrocedemos al final, cruzamos la meta en reversa
       else if (follow.currentSegment < totalSegments * 0.1f && bestIndex > totalSegments * 0.9f) {
         follow.currentLap--;
       }
-
-      // Guardamos el índice ganador actualizado
       follow.currentSegment = bestIndex;
       // --------------------------------
 
-      // 3. Decisión y Corrección (Curvas Suaves)
-      // Obtenemos el vértice final de nuestro segmento actual
+      // NOTA: Se eliminó la tolerancia de pista (Path Radius). 
+      // Ahora la IA siempre genera fuerza hacia adelante (Seek) para contrarrestar la fricción.
+
+      // 3. Decisión y Corrección Constante
       sf::Vector2f b = path.points[(bestIndex + 1) % path.points.size()];
-
-      // ¿Cuánta distancia hay desde nuestro punto normal hasta el final del segmento?
       float distToEnd = Length(b - targetNormalPoint);
-
       sf::Vector2f target;
 
-      // Si el "targetOffset" cabe en la línea actual, lo aplicamos normal
       if (follow.targetOffset <= distToEnd) {
         target = targetNormalPoint + (targetDir * follow.targetOffset);
       }
-      // Si el offset se sale de la línea, "doblamos" la distancia sobrante al siguiente segmento
       else {
-        // Vértice final del SIGUIENTE segmento
         sf::Vector2f nextB = path.points[(bestIndex + 2) % path.points.size()];
         sf::Vector2f nextDir = Normalize(nextB - b);
-
         float remainingOffset = follow.targetOffset - distToEnd;
         target = b + (nextDir * remainingOffset);
       }
 
-      // Fuerza Seek constante hacia ese punto futuro continuo
+      // Fuerza Seek: Siempre empujando hacia el objetivo continuo para mantener el maxSpeed
       sf::Vector2f desiredVelocity = Normalize(target - currentPos) * maxSpeed;
       return desiredVelocity - velocity;
     }
 
-    // <-- NUEVO: El bucle que el Registry llama cada frame para aplicar la lógica
+    // El bucle que el Registry llama cada frame para aplicar la lógica
     void OnUpdate(Registry& registry, float /*deltaTime*/) override {
       // Iteramos sobre todos los corredores de la pista
       registry.GetView<Transform, Kinematic, PathFollow>().Each(
@@ -174,7 +170,6 @@ namespace ECS {
           // IMPORTANTE: Sumamos la fuerza directamente a la aceleración
           // Así respetamos la arquitectura de tu motor, permitiendo que
           // otros sistemas (como Obstacle Avoidance) también sumen las suyas.
-          
           kinematic.acceleration += steeringForce;
         }
       );
